@@ -1,0 +1,25 @@
+{
+  "model": "deepseek-coder:6.7b-instruct-q4_K_M",
+  "ollama_host": "http://127.0.0.1:11434",
+  "context_window": 4096,
+  "temperature": 0.1,
+  "workspace": {
+    "include_git_context": true,
+    "include_readme": true,
+    "max_files": 50
+  },
+  "agents": {
+    "explain": {
+      "prompt_template": "base_prompt.txt",
+      "temperature": 0.2
+    },
+    "fix": {
+      "prompt_template": "base_prompt.txt", 
+      "temperature": 0.1
+    },
+    "test": {
+      "prompt_template": "base_prompt.txt",
+      "temperature": 0.3
+    }
+  }
+}
