@@ -1,14 +1,25 @@
-import fs from 'fs/promises';
+import { FileSystemHandler } from '../core/fsHandler.js';
 import chalk from 'chalk';
 
 export async function run({ file, focus }) {
+  const fsHandler = new FileSystemHandler();
+  
   try {
-    const code = await fs.readFile(file, 'utf-8');
-    const analysis = analyzeCode(code, focus);
+    const result = await fsHandler.readFile(file);
+    if (!result.success) {
+      return chalk.red(`Error reading file: ${result.error}`);
+    }
+    
+    const analysis = analyzeCode(result.content, focus);
+    analysis.fileInfo = {
+      size: result.size,
+      modified: result.modified,
+      path: result.path
+    };
     
     return formatExplanation(analysis, file);
   } catch (error) {
-    return chalk.red(`Error reading file: ${error.message}`);
+    return chalk.red(`Error: ${error.message}`);
   }
 }
 
@@ -51,6 +62,8 @@ function calculateComplexity(lines) {
 function formatExplanation(analysis, file) {
   return `
 ${chalk.bold.cyan('Code Explanation:')} ${file}
+
+${analysis.fileInfo ? chalk.gray(`Size: ${analysis.fileInfo.size} bytes | Modified: ${analysis.fileInfo.modified.toLocaleString()}`) + '\n' : ''}
 
 ${chalk.yellow('Overview:')}
 ${analysis.overview}

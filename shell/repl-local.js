@@ -10,6 +10,7 @@ import { loadPrompt, loadToolSchema } from '../core/promptLoader.js';
 import { handleTool, parseToolCall } from '../core/toolRouter.js';
 import { MemoryManager } from '../core/memoryManager.js';
 import { ShellSandbox } from '../core/shellSandbox.js';
+import { FileSystemHandler } from '../core/fsHandler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const memory = new MemoryManager();
@@ -35,6 +36,10 @@ export async function startRepl(args) {
   const systemPrompt = loadPrompt();
   const toolSchema = loadToolSchema();
   const shellSandbox = new ShellSandbox(config.shell);
+  const fsHandler = new FileSystemHandler({
+    sandbox_root: process.cwd(),
+    backup_enabled: true
+  });
 
   console.log(chalk.cyan.bold('\n🤖 Bruno v2.0 - Local-First CLI'));
   console.log(chalk.gray('100% private, 100% offline'));
@@ -84,6 +89,51 @@ export async function startRepl(args) {
     if (input.startsWith('shell ') || input.startsWith('run ')) {
       const command = input.replace(/^(shell|run) /, '');
       await executeShellCommand(command, shellSandbox);
+      rl.prompt();
+      return;
+    }
+
+    // File system commands
+    if (input.startsWith('read ')) {
+      const filePath = input.replace('read ', '').trim();
+      await executeFileRead(filePath, fsHandler);
+      rl.prompt();
+      return;
+    }
+
+    if (input.startsWith('write ')) {
+      const parts = input.split(' ');
+      const filePath = parts[1];
+      const content = parts.slice(2).join(' ').replace(/^["']|["']$/g, '');
+      await executeFileWrite(filePath, content, fsHandler);
+      rl.prompt();
+      return;
+    }
+
+    if (input.startsWith('list ') || input.startsWith('ls ')) {
+      const dirPath = input.replace(/^(list|ls) /, '').trim() || '.';
+      await executeDirectoryList(dirPath, fsHandler);
+      rl.prompt();
+      return;
+    }
+
+    if (input.startsWith('tree ')) {
+      const dirPath = input.replace('tree ', '').trim() || '.';
+      await executeTree(dirPath, fsHandler);
+      rl.prompt();
+      return;
+    }
+
+    if (input.startsWith('find ')) {
+      const pattern = input.replace('find ', '').trim();
+      await executeFindFiles(pattern, fsHandler);
+      rl.prompt();
+      return;
+    }
+
+    if (input.startsWith('analyze ') || input.startsWith('project ')) {
+      const projectPath = input.replace(/^(analyze|project) /, '').trim() || '.';
+      await executeProjectAnalysis(projectPath, fsHandler);
       rl.prompt();
       return;
     }
@@ -158,31 +208,142 @@ async function executeShellCommand(command, sandbox) {
   }
 }
 
+async function executeFileRead(filePath, fsHandler) {
+  const result = await fsHandler.readFile(filePath);
+  if (result.success) {
+    console.log(chalk.cyan(`\n📄 ${filePath}`));
+    console.log(chalk.gray(`Size: ${result.size} bytes | Modified: ${result.modified.toLocaleString()}`));
+    console.log('\n' + result.content);
+  } else {
+    console.log(chalk.red(`❌ ${result.error}`));
+  }
+}
+
+async function executeFileWrite(filePath, content, fsHandler) {
+  const result = await fsHandler.writeFile(filePath, content);
+  if (result.success) {
+    console.log(chalk.green(`✅ File ${result.action}: ${filePath}`));
+    if (result.backup) {
+      console.log(chalk.gray(`Backup created: ${result.backup}`));
+    }
+  } else {
+    console.log(chalk.red(`❌ ${result.error}`));
+  }
+}
+
+async function executeDirectoryList(dirPath, fsHandler) {
+  const result = await fsHandler.listDirectory(dirPath);
+  if (result.success) {
+    console.log(chalk.cyan(`\n📁 ${result.path}`));
+    console.table(result.items.map(item => ({
+      Name: item.name,
+      Type: item.type,
+      Size: item.type === 'file' ? `${item.size} bytes` : '-',
+      Extension: item.extension || '-'
+    })));
+  } else {
+    console.log(chalk.red(`❌ ${result.error}`));
+  }
+}
+
+async function executeTree(dirPath, fsHandler) {
+  const tree = await fsHandler.generateTree(dirPath);
+  const output = fsHandler.formatTree(tree);
+  console.log(chalk.cyan(`\n🌳 Project Tree: ${dirPath}`));
+  console.log(output);
+}
+
+async function executeFindFiles(pattern, fsHandler) {
+  const result = await fsHandler.findFiles(pattern);
+  if (result.success) {
+    console.log(chalk.cyan(`\n🔍 Found ${result.results.length} files matching "${pattern}"`));
+    result.results.forEach(file => {
+      console.log(chalk.gray(`  ${file.relativePath}`));
+    });
+  } else {
+    console.log(chalk.red(`❌ ${result.error}`));
+  }
+}
+
+async function executeProjectAnalysis(projectPath, fsHandler) {
+  console.log(chalk.cyan(`\n📊 Analyzing project: ${projectPath}`));
+  
+  // Get directory listing
+  const dirResult = await fsHandler.listDirectory(projectPath);
+  if (!dirResult.success) {
+    console.log(chalk.red(`❌ ${dirResult.error}`));
+    return;
+  }
+
+  // Get project tree
+  const tree = await fsHandler.generateTree(projectPath, 2);
+  
+  // Count files by type
+  const fileTypes = {};
+  const countFiles = (items) => {
+    items.forEach(item => {
+      if (item.type === 'file' && item.extension) {
+        fileTypes[item.extension] = (fileTypes[item.extension] || 0) + 1;
+      }
+      if (item.children) countFiles(item.children);
+    });
+  };
+  
+  countFiles(tree);
+  
+  console.log(chalk.yellow('📈 Project Statistics:'));
+  console.log(`  Total items: ${dirResult.items.length}`);
+  console.log(`  Directories: ${dirResult.items.filter(i => i.type === 'directory').length}`);
+  console.log(`  Files: ${dirResult.items.filter(i => i.type === 'file').length}`);
+  
+  console.log(chalk.yellow('\n📊 File Types:'));
+  Object.entries(fileTypes).forEach(([ext, count]) => {
+    console.log(`  ${ext}: ${count} files`);
+  });
+  
+  console.log(chalk.yellow('\n🌳 Project Structure:'));
+  console.log(fsHandler.formatTree(tree.slice(0, 10))); // Show first 10 items
+}
+
 function showHelp() {
   console.log(`
 ${chalk.bold('Commands:')}
-  help     - Show this help message
-  clear    - Clear the screen
-  memory   - Show memory summary
-  shell    - Execute shell command (sandboxed)
-  run      - Alias for shell
-  exit     - Exit the REPL
+  help          - Show this help message
+  clear         - Clear the screen
+  memory        - Show memory summary
+  exit          - Exit the REPL
 
-${chalk.bold('Tool Usage:')}
-  fix <file>      - Fix code issues
-  explain <file>  - Explain code
-  test <file>     - Generate tests
+${chalk.bold('File System:')}
+  read <file>   - Read file contents
+  write <file> <content> - Write to file
+  list <dir>    - List directory contents
+  ls <dir>      - Alias for list
+  tree <dir>    - Show directory tree
+  find <pattern> - Find files by name
+  analyze <dir> - Analyze project structure
+  project <dir> - Alias for analyze
+
+${chalk.bold('Shell Commands:')}
+  shell <cmd>   - Execute shell command (sandboxed)
+  run <cmd>     - Alias for shell
+
+${chalk.bold('AI Tools:')}
+  fix <file>    - Fix code issues
+  explain <file> - Explain code
+  test <file>   - Generate tests
 
 ${chalk.bold('Privacy Features:')}
   ✓ 100% local processing
   ✓ No telemetry or tracking
   ✓ No cloud dependencies
-  ✓ Shell command sandboxing
+  ✓ File system sandboxing
+  ✓ Automatic backups
 
 ${chalk.bold('Examples:')}
-  bruno> explain src/utils.js
-  bruno> fix the authentication bug in auth.js
+  bruno> read src/utils.js
+  bruno> write src/new.js "export const hello = 'world'"
+  bruno> analyze /path/to/project
+  bruno> explain src/auth.js
   bruno> shell npm test
-  bruno> run git status
   `);
 }

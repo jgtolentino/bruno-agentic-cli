@@ -1,15 +1,21 @@
-import fs from 'fs/promises';
+import { FileSystemHandler } from '../core/fsHandler.js';
 import chalk from 'chalk';
 import path from 'path';
 
 export async function run({ file, framework = 'jest' }) {
+  const fsHandler = new FileSystemHandler();
+  
   try {
-    const code = await fs.readFile(file, 'utf-8');
-    const testCases = generateTestCases(code, framework);
+    const result = await fsHandler.readFile(file);
+    if (!result.success) {
+      return chalk.red(`Error reading file: ${result.error}`);
+    }
     
-    return formatTests(testCases, file, framework);
+    const testCases = generateTestCases(result.content, framework);
+    
+    return formatTests(testCases, file, framework, result);
   } catch (error) {
-    return chalk.red(`Error generating tests: ${error.message}`);
+    return chalk.red(`Error: ${error.message}`);
   }
 }
 
@@ -44,11 +50,11 @@ function extractFunctions(code) {
   return matches.map(match => match[1]);
 }
 
-function formatTests(testCases, file, framework) {
+function formatTests(testCases, file, framework, fileResult) {
   const basename = path.basename(file, path.extname(file));
   
   let output = `${chalk.bold.cyan('Generated Tests:')} ${file}\n`;
-  output += `${chalk.gray(`Framework: ${framework}`)}\n\n`;
+  output += chalk.gray(`Size: ${fileResult.size} bytes | Framework: ${framework}\n\n`);
   
   // Generate test template
   if (framework === 'jest') {

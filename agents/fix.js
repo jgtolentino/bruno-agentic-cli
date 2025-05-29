@@ -1,14 +1,20 @@
-import fs from 'fs/promises';
+import { FileSystemHandler } from '../core/fsHandler.js';
 import chalk from 'chalk';
 
 export async function run({ file, issue }) {
+  const fsHandler = new FileSystemHandler();
+  
   try {
-    const code = await fs.readFile(file, 'utf-8');
-    const fixes = await detectAndFix(code, issue);
+    const result = await fsHandler.readFile(file);
+    if (!result.success) {
+      return chalk.red(`Error reading file: ${result.error}`);
+    }
     
-    return formatFixes(fixes, file);
+    const fixes = await detectAndFix(result.content, issue);
+    
+    return formatFixes(fixes, file, result);
   } catch (error) {
-    return chalk.red(`Error processing file: ${error.message}`);
+    return chalk.red(`Error: ${error.message}`);
   }
 }
 
@@ -55,12 +61,13 @@ function getLineNumber(code, search) {
   return 0;
 }
 
-function formatFixes(issues, file) {
+function formatFixes(issues, file, fileResult) {
   if (issues.length === 0) {
     return chalk.green(`✓ No issues found in ${file}`);
   }
   
-  let output = `${chalk.bold.cyan('Code Fixes:')} ${file}\n\n`;
+  let output = `${chalk.bold.cyan('Code Fixes:')} ${file}\n`;
+  output += chalk.gray(`Size: ${fileResult.size} bytes | Modified: ${fileResult.modified.toLocaleString()}\n\n`);
   
   issues.forEach((issue, index) => {
     const icon = issue.type === 'error' ? '❌' : issue.type === 'warning' ? '⚠️' : '💡';
