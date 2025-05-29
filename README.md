@@ -1,15 +1,17 @@
-# Bruno Agentic CLI v2.0
+# Bruno Agentic CLI v2.0 - Local-First Edition
 
-Bruno is a Claude-powered agentic CLI that brings advanced AI assistance directly to your terminal. Built on Claude's powerful language model, Bruno helps you understand, fix, and test code with unprecedented accuracy.
+Bruno is a **100% private, 100% offline** AI-powered CLI that helps you understand, fix, and test code without any data leaving your machine. Built on local LLMs, Bruno delivers powerful AI assistance while respecting your privacy.
 
 ## 🚀 Features
 
-- **🤖 Claude Integration**: Powered by Claude 3 Sonnet for superior code understanding
-- **💬 Interactive REPL**: Natural conversation interface with memory
+- **🔐 Local-First**: All processing happens on your machine - no cloud, no telemetry
+- **🤖 Ollama Integration**: Powered by local models like DeepSeek Coder
+- **💬 Interactive REPL**: Natural conversation interface with local memory
 - **🔧 Smart Tools**: Automatic tool selection for explain, fix, and test operations
-- **📝 Context Awareness**: Maintains conversation history and project context
+- **🛡️ Shell Sandboxing**: Safe execution of shell commands with protection
+- **📝 Context Awareness**: Maintains conversation history locally
 - **🎨 Beautiful Output**: Color-coded responses with clear formatting
-- **⚡ Fast & Efficient**: Direct API integration for quick responses
+- **⚡ Fast & Private**: No network latency, complete privacy
 
 ## 📦 Installation
 
@@ -19,10 +21,24 @@ npm install -g bruno-agentic-cli
 
 ## 🔑 Setup
 
-Set your Anthropic API key:
-```bash
-export ANTHROPIC_API_KEY="your-api-key-here"
-```
+1. **Install Ollama**:
+   ```bash
+   # macOS
+   brew install ollama
+   
+   # Linux
+   curl -fsSL https://ollama.ai/install.sh | sh
+   ```
+
+2. **Pull the model**:
+   ```bash
+   ollama pull deepseek-coder:6.7b
+   ```
+
+3. **Start Ollama server**:
+   ```bash
+   ollama serve
+   ```
 
 ## 🎯 Usage
 
@@ -93,15 +109,27 @@ bruno> fix the authentication bug in auth.js
 bruno> generate tests for calculator.js using jest
 ```
 
-## 🔌 Tool System
-
-Bruno uses a Claude-style tool system:
-
-```
-[Tool: explain(file="src/utils.js", focus="parseJSON function")]
+### Run Shell Commands (Sandboxed)
+```bash
+bruno> shell npm test
+bruno> run git status
 ```
 
-Tools automatically execute and return results inline.
+## 🛡️ Privacy & Security
+
+Bruno is designed with privacy as the #1 priority:
+
+- **No Cloud Dependencies**: Everything runs locally
+- **No Telemetry**: Zero tracking or analytics
+- **No API Keys**: No registration or authentication
+- **Shell Sandboxing**: Dangerous commands are blocked
+- **Local Sessions**: All data stays on your machine
+
+### Blocked Commands
+- `rm -rf`, `sudo`, `curl`, `wget`, `ssh`
+
+### Warning Commands
+- `rm`, `mv`, `cp -r`
 
 ## 🧠 Memory System
 
