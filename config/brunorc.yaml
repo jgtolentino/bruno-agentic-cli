@@ -1,6 +1,6 @@
 agent: bruno
 llm_provider: local
-local_model: deepseek-coder:6.7b
+local_model: deepseek-coder:6.7b-instruct-q4_K_M
 ollama_url: http://127.0.0.1:11434
 fallback_provider: none
 allow_cloud: false
