@@ -1,0 +1,53 @@
+{
+  "tools": [
+    {
+      "name": "fix",
+      "description": "Fix code issues, bugs, or improve code quality",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "description": "Path to the file to fix",
+          "required": true
+        },
+        "issue": {
+          "type": "string",
+          "description": "Description of the issue to fix",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "explain",
+      "description": "Explain code functionality, architecture, or concepts",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "description": "Path to the file to explain",
+          "required": true
+        },
+        "focus": {
+          "type": "string",
+          "description": "Specific area or function to focus on",
+          "required": false
+        }
+      }
+    },
+    {
+      "name": "test",
+      "description": "Generate comprehensive test cases for code",
+      "parameters": {
+        "file": {
+          "type": "string",
+          "description": "Path to the file to test",
+          "required": true
+        },
+        "framework": {
+          "type": "string",
+          "description": "Testing framework to use (jest, mocha, pytest, etc.)",
+          "required": false,
+          "default": "jest"
+        }
+      }
+    }
+  ]
+}

@@ -1,209 +1,126 @@
-# 🤖 Bruno Agentic CLI
+# Bruno Agentic CLI v2.0
 
-**Enhanced Local Claude Code Replacement** - A powerful AI-powered development assistant that runs entirely on your local machine using Ollama.
+Bruno is a Claude-powered agentic CLI that brings advanced AI assistance directly to your terminal. Built on Claude's powerful language model, Bruno helps you understand, fix, and test code with unprecedented accuracy.
 
-## ✨ Features
+## 🚀 Features
 
-### 🎯 Multiple Input Modes
-- **Interactive Mode** - Guided prompts with smart agent selection
-- **Command Mode** - Slash commands for quick actions
-- **Free Prompt Mode** - Open-ended AI conversation
+- **🤖 Claude Integration**: Powered by Claude 3 Sonnet for superior code understanding
+- **💬 Interactive REPL**: Natural conversation interface with memory
+- **🔧 Smart Tools**: Automatic tool selection for explain, fix, and test operations
+- **📝 Context Awareness**: Maintains conversation history and project context
+- **🎨 Beautiful Output**: Color-coded responses with clear formatting
+- **⚡ Fast & Efficient**: Direct API integration for quick responses
 
-### 🧠 Intelligent Agent System
-- **Explain Agent** - Detailed code analysis and explanations
-- **Fix Agent** - Bug detection and code corrections  
-- **Test Agent** - Comprehensive test generation
-- **Smart Routing** - AI automatically selects the best agent
+## 📦 Installation
 
-### 📁 Workspace Awareness
-- **Git Integration** - Automatically loads git status, branch, and recent commits
-- **Project Context** - Understands your project structure and README
-- **File Memory** - Tracks recently modified files
-- **Context Injection** - Adds relevant workspace info to prompts
-
-### ⚡ Advanced Features
-- **Streaming Responses** - Real-time AI output with progress indicators
-- **Slash Commands** - Quick `/explain`, `/fix`, `/test` commands
-- **Configuration System** - Customizable via `.brunorc` file
-- **Error Handling** - Graceful fallbacks and helpful error messages
-
-## 🚀 Quick Start
-
-### Prerequisites
 ```bash
-# Install Ollama
-brew install ollama
-
-# Pull the code model
-ollama pull deepseek-coder:6.7b-instruct-q4_K_M
+npm install -g bruno-agentic-cli
 ```
 
-### Installation
-```bash
-# Clone and setup
-cd bruno-agentic-cli
-npm install
-chmod +x cli.js
+## 🔑 Setup
 
-# Optional: Link globally
-npm link
+Set your Anthropic API key:
+```bash
+export ANTHROPIC_API_KEY="your-api-key-here"
 ```
 
-### Usage
+## 🎯 Usage
+
+### Interactive REPL
 ```bash
-# Start Bruno
-./cli.js
-# or if linked globally
 bruno
 ```
 
-## 📋 Slash Commands
-
-| Command | Usage | Description |
-|---------|-------|-------------|
-| `/explain <file>` | `/explain src/utils.js` | Analyze and explain code |
-| `/fix <file>` | `/fix components/Button.tsx` | Find and fix bugs |
-| `/test <file>` | `/test lib/parser.js` | Generate unit tests |
-| `/context` | `/context` | Show workspace context |
-| `/model [name]` | `/model codellama:7b` | Show/change AI model |
-| `/help` | `/help` | Show available commands |
-
-## ⚙️ Configuration
-
-Create a `.brunorc` file in your project root:
-
-```json
-{
-  "model": "deepseek-coder:6.7b-instruct-q4_K_M",
-  "ollama_host": "http://localhost:11434",
-  "context_window": 4096,
-  "temperature": 0.1,
-  "workspace": {
-    "include_git_context": true,
-    "include_readme": true,
-    "max_files": 50
-  },
-  "agents": {
-    "explain": {
-      "temperature": 0.2
-    },
-    "fix": {
-      "temperature": 0.1
-    },
-    "test": {
-      "temperature": 0.3
-    }
-  }
-}
-```
-
-## 🎮 Usage Examples
-
-### Interactive Mode
+### Direct Commands
 ```bash
-./cli.js
-# Select "Interactive Mode (guided prompts)"
-# Choose "Smart Route (AI decides)"
-# Enter: "I need help debugging this function"
-# Provide file path: src/utils/parser.js
+bruno explain src/utils.js
+bruno fix src/auth.js
+bruno test src/calculator.js
 ```
 
-### Command Mode
-```bash
-./cli.js
-# Select "Command Mode (slash commands)"
-# Enter: "/explain examples/sample.js"
+### REPL Commands
+- `help` - Show available commands
+- `clear` - Clear the screen
+- `memory` - Show conversation memory
+- `exit` - Exit the REPL
+
+## 🛠️ Configuration
+
+Create a `config/brunorc.yaml`:
+
+```yaml
+agent: bruno
+model: claude-3-sonnet-20240229
+llm_provider: anthropic
+memory: true
+default_tool: explain
+repl_mode: true
+max_tokens: 2048
+temperature: 0.7
 ```
 
-### Smart Routing Examples
-- **"fix bugs in my code"** → Automatically routes to Fix Agent
-- **"explain this function"** → Routes to Explain Agent  
-- **"generate tests"** → Routes to Test Agent
-- **"help me understand"** → Routes to Explain Agent
-
-## 🏗️ Architecture
+## 📂 Project Structure
 
 ```
 bruno-agentic-cli/
-├── cli.js                 # Main CLI entry point
-├── .brunorc              # Configuration file
-├── agents/               # AI agent prompt templates
-│   ├── explain.js        # Code explanation agent
-│   ├── fix.js           # Bug fixing agent
-│   └── test.js          # Test generation agent
-├── lib/                 # Core Bruno modules
-│   ├── slash-commands.js # Slash command parser
-│   ├── workspace-memory.js # Workspace context loader
-│   ├── router.js        # Intelligent agent routing
-│   └── streaming.js     # Streaming response handler
-└── examples/            # Sample files for testing
-    └── sample.js
+├── bin/bruno.js          # CLI entry point
+├── core/                 # Core modules
+│   ├── promptLoader.js   # System prompt management
+│   ├── toolRouter.js     # Tool routing logic
+│   └── memoryManager.js  # Conversation memory
+├── agents/               # Tool implementations
+│   ├── explain.js        # Code explanation
+│   ├── fix.js           # Bug fixing
+│   └── test.js          # Test generation
+├── shell/repl.js        # Interactive REPL
+└── prompts/             # System prompts
 ```
 
-## 🔧 Troubleshooting
+## 🤝 Examples
 
-### Ollama Not Running
+### Explain Code
 ```bash
-# Start Ollama service
-ollama serve
-
-# Verify model is available
-ollama list
+bruno> explain src/auth.js
 ```
 
-### Model Issues
+### Fix Issues
 ```bash
-# Pull required model
-ollama pull deepseek-coder:6.7b-instruct-q4_K_M
-
-# Alternative models
-ollama pull codellama:7b-code
-ollama pull mistral:7b-code
+bruno> fix the authentication bug in auth.js
 ```
 
-### Permission Errors
+### Generate Tests
 ```bash
-# Make CLI executable
-chmod +x cli.js
-
-# Fix npm linking issues
-sudo npm link
+bruno> generate tests for calculator.js using jest
 ```
 
-## 🆚 vs Claude Code
+## 🔌 Tool System
 
-| Feature | Bruno CLI | Claude Code |
-|---------|-----------|-------------|
-| **Privacy** | ✅ 100% Local | ❌ Cloud-based |
-| **Cost** | ✅ Free | 💰 Paid |
-| **Speed** | ✅ No network latency | ⚠️ Depends on connection |
-| **Customization** | ✅ Full control | ❌ Limited |
-| **Offline** | ✅ Works offline | ❌ Requires internet |
-| **Models** | ✅ Any Ollama model | ❌ Fixed models |
+Bruno uses a Claude-style tool system:
 
-## 🛠️ Development
+```
+[Tool: explain(file="src/utils.js", focus="parseJSON function")]
+```
 
-### Adding New Agents
-1. Create agent file in `agents/`
-2. Implement `generatePrompt(code)` function
-3. Add to router in `lib/router.js`
-4. Update slash commands in `lib/slash-commands.js`
+Tools automatically execute and return results inline.
 
-### Custom Prompts
-Edit prompt templates in `agents/` or create new ones following the existing pattern.
+## 🧠 Memory System
 
-## 📝 License
+Bruno maintains conversation context:
+- Remembers recent interactions
+- Maintains project context
+- Allows follow-up questions
 
-MIT License - see LICENSE file for details.
+## 🎨 Customization
 
-## 🤝 Contributing
+Extend Bruno by:
+1. Adding new agents in `agents/`
+2. Updating tool schema in `prompts/tool_schema.json`
+3. Modifying system prompt in `prompts/bruno_prompt.txt`
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test with various code samples
-5. Submit a pull request
+## 📄 License
+
+MIT
 
 ---
 
-**Bruno CLI** - Your local AI coding assistant, no cloud required! 🚀
+Built with ❤️ using Claude's API
