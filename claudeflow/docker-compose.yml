@@ -1,0 +1,79 @@
+# ClaudeFlow Docker Compose Configuration
+# For local development and production deployment
+
+version: '3.8'
+
+services:
+  claudeflow:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # Load from .env file
+      - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - GOOGLE_CREDENTIALS_PATH=/app/credentials.json
+      - REDIS_URL=redis://redis:6379
+      - DATABASE_URL=postgresql://claudeflow:${DB_PASSWORD:-claudeflow123}@postgres:5432/claudeflow
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DEBUG=${DEBUG:-false}
+    volumes:
+      # Mount credentials file (read-only)
+      - ./credentials.json:/app/credentials.json:ro
+      # Mount storage directory for file uploads
+      - claudeflow_storage:/app/storage
+    depends_on:
+      - redis
+      - postgres
+    restart: unless-stopped
+    networks:
+      - claudeflow-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - claudeflow-network
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=claudeflow
+      - POSTGRES_USER=claudeflow
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-claudeflow123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - claudeflow-network
+
+  # Optional: Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - claudeflow
+    restart: unless-stopped
+    networks:
+      - claudeflow-network
+    profiles:
+      - production
+
+volumes:
+  redis_data:
+  postgres_data:
+  claudeflow_storage:
+
+networks:
+  claudeflow-network:
+    driver: bridge

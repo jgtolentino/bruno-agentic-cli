@@ -11,6 +11,18 @@ import { handleTool, parseToolCall } from '../core/toolRouter.js';
 import { MemoryManager } from '../core/memoryManager.js';
 import { ShellSandbox } from '../core/shellSandbox.js';
 import { FileSystemHandler } from '../core/fsHandler.js';
+import { UniversalRouter } from '../core/universalRouter.js';
+import { KnowledgeBase } from '../core/knowledgeBase.js';
+import { AdvancedPatternsEngine } from '../core/advancedPatternsEngine.js';
+import { 
+  ThinkingIndicator, 
+  ProgressTracker, 
+  ResponseFormatter, 
+  StatusDashboard, 
+  InteractiveHelp,
+  ContextualUI,
+  EnhancedPrompt 
+} from '../core/uiEnhancer.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const memory = new MemoryManager();
@@ -41,14 +53,46 @@ export async function startRepl(args) {
     backup_enabled: true
   });
 
-  console.log(chalk.cyan.bold('\n🤖 Bruno v2.0 - Local-First CLI'));
-  console.log(chalk.gray('100% private, 100% offline'));
-  console.log(chalk.gray('Type "help" for commands, "exit" to quit\n'));
+  // Session management
+  const sessionManager = args.sessionManager;
+  const sessionId = args.sessionId;
+  
+  console.log(chalk.cyan.bold('\n🤖 Bruno v3.0 - Advanced Local-First CLI'));
+  console.log(chalk.gray('100% private, 100% offline, 100% powerful'));
+  console.log(chalk.blue('Enhanced with patterns from Cursor, Windsurf, Bolt & Manus'));
+  
+  // Show status dashboard
+  const sessionContext = sessionId ? await sessionManager.getSessionContext(sessionId) : null;
+  StatusDashboard.show(
+    sessionContext ? { 
+      id: sessionId, 
+      messageCount: sessionContext.recentMessages.length 
+    } : null,
+    { model: config.model || 'deepseek-coder:6.7b' },
+    'ready'
+  );
+  
+  // Show helpful suggestions
+  InteractiveHelp.suggestCommands({
+    hasFiles: true, // Could check if in project directory
+    inProject: true
+  });
+  
+  // Initialize advanced components
+  const router = new UniversalRouter(config);
+  const kb = new KnowledgeBase();
+  const advancedPatterns = new AdvancedPatternsEngine(config);
 
+  // Enhanced prompt with status
+  const enhancedPrompt = new EnhancedPrompt();
+  if (sessionId) {
+    enhancedPrompt.updateSession(sessionId);
+  }
+  
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
-    prompt: chalk.green('bruno> ')
+    prompt: enhancedPrompt.getPrompt()
   });
 
   // Handle direct command execution
@@ -82,7 +126,24 @@ export async function startRepl(args) {
     if (input === 'memory') {
       console.log(chalk.blue('Memory Summary:'));
       console.log(memory.getSummary());
+      
+      if (sessionManager && sessionId) {
+        const sessionHistory = await sessionManager.getSessionHistory(sessionId, 5);
+        if (sessionHistory.length > 0) {
+          console.log(chalk.cyan('\n📝 Recent Session History:'));
+          sessionHistory.forEach((msg, index) => {
+            const time = new Date(msg.timestamp).toLocaleTimeString();
+            console.log(chalk.gray(`${index + 1}. [${time}] ${msg.input.substring(0, 50)}...`));
+          });
+        }
+      }
+      
       rl.prompt();
+      return;
+    }
+    
+    if (input.startsWith('/')) {
+      await handleSlashCommand(input, sessionManager, sessionId, rl);
       return;
     }
 
@@ -138,15 +199,38 @@ export async function startRepl(args) {
       return;
     }
 
-    // Process with local LLM
+    // Route through Universal Router for advanced pattern processing
     try {
-      console.log(chalk.gray('\nThinking locally...'));
+      // Enhanced UI feedback
+      enhancedPrompt.updateStatus('thinking');
+      const thinkingIndicator = new ThinkingIndicator();
+      thinkingIndicator.start('Analyzing request');
       
-      await processWithOllama(input, ollama, systemPrompt, async (chunk) => {
-        process.stdout.write(chunk);
-      });
+      // Try Universal Router first for intelligent routing
+      const routingResult = await router.route(input);
       
-      console.log('\n');
+      thinkingIndicator.stop();
+      enhancedPrompt.updateStatus('ready');
+      
+      // Enhanced response formatting
+      if (routingResult && typeof routingResult === 'object' && routingResult.type) {
+        // Use enhanced response formatter instead of formatStructuredResponse
+        ResponseFormatter.formatConversational(routingResult);
+      } else if (routingResult && routingResult !== input) {
+        // Router returned a string response
+        ResponseFormatter.formatConversational(routingResult);
+      } else {
+        // Fallback to direct Ollama processing with better UI
+        thinkingIndicator.start('Processing with local LLM');
+        
+        await processWithOllama(input, ollama, systemPrompt, async (chunk) => {
+          process.stdout.write(chunk);
+        });
+        
+        thinkingIndicator.stop();
+      }
+      
+      console.log('');
 
       // Add to memory
       memory.addToMemory({
@@ -154,9 +238,48 @@ export async function startRepl(args) {
         input: input,
         timestamp: new Date().toISOString()
       });
+      
+      // Save to session if available
+      if (sessionManager && sessionId) {
+        await sessionManager.addMessage(sessionId, input, typeof routingResult === 'object' ? routingResult.explanation || JSON.stringify(routingResult) : routingResult);
+      }
 
     } catch (error) {
-      console.error(chalk.red('Error:'), error.message);
+      enhancedPrompt.updateStatus('error');
+      
+      // Enhanced error handling with suggestions
+      ResponseFormatter.showError(error, {
+        suggestions: [
+          'Try rephrasing your request',
+          'Use more specific commands like "create react app"',
+          'Check that Ollama is running with "ollama list"',
+          'Try basic commands like "help" or "memory"'
+        ],
+        debug: args.debug || args.verbose
+      });
+      
+      // Fallback to basic processing on error
+      const thinkingIndicator = new ThinkingIndicator();
+      thinkingIndicator.start('Trying alternative approach');
+      
+      try {
+        await processWithOllama(input, ollama, systemPrompt, async (chunk) => {
+          process.stdout.write(chunk);
+        });
+        enhancedPrompt.updateStatus('ready');
+      } catch (fallbackError) {
+        ResponseFormatter.showError(fallbackError, {
+          suggestions: [
+            'Check Ollama connection: ollama serve',
+            'Verify model is available: ollama list',
+            'Restart Bruno and try again'
+          ],
+          debug: args.debug || args.verbose
+        });
+      } finally {
+        thinkingIndicator.stop();
+        enhancedPrompt.updateStatus('ready');
+      }
     }
 
     rl.prompt();
@@ -265,6 +388,93 @@ async function executeFindFiles(pattern, fsHandler) {
   }
 }
 
+function formatStructuredResponse(result) {
+  switch (result.type) {
+    case 'cloud':
+      console.log(chalk.cyan(`\n☁️  Supabase CLI Guide:`));
+      console.log(chalk.white(result.explanation));
+      console.log(chalk.yellow('\n📋 Commands:'));
+      console.log(chalk.gray(result.command));
+      if (result.followUp && result.followUp.length > 0) {
+        console.log(chalk.yellow('\n💡 Next steps:'));
+        result.followUp.forEach(cmd => console.log(chalk.gray(`  ${cmd}`)));
+      }
+      break;
+      
+    case 'frontend':
+      console.log(chalk.green(`\n⚛️  Frontend Solution:`));
+      console.log(chalk.white(result.explanation));
+      if (result.code) {
+        console.log(chalk.yellow('\n📝 Generated code:'));
+        console.log(chalk.gray(result.code));
+      }
+      break;
+      
+    case 'database':
+      console.log(chalk.blue(`\n🗄️  Database Solution:`));
+      console.log(chalk.white(result.explanation));
+      if (result.query) {
+        console.log(chalk.yellow('\n📝 SQL Query:'));
+        console.log(chalk.gray(result.query));
+      }
+      break;
+      
+    case 'iot':
+      console.log(chalk.blue(`\n🔌 IoT Pipeline Solution:`));
+      console.log(chalk.white(result.explanation));
+      break;
+      
+    case 'artist':
+      console.log(chalk.magenta(`\n🎨 Artist Platform Solution:`));
+      console.log(chalk.white(result.explanation));
+      break;
+      
+    case 'system':
+      console.log(chalk.yellow(`\n⚙️  System Configuration:`));
+      console.log(chalk.white(result.explanation));
+      break;
+      
+    case 'meta':
+      console.log(chalk.cyan(`\n🤖 About Bruno:`));
+      console.log(chalk.white(result.explanation));
+      break;
+      
+    case 'enhanced':
+      console.log(chalk.green(`\n🔄 Enhanced Response:`));
+      console.log(chalk.white(result.explanation));
+      if (result.fallback_pattern) {
+        console.log(chalk.gray(`\n📍 Enhanced from: ${result.fallback_pattern}`));
+      }
+      break;
+      
+    case 'deep_analysis':
+      console.log(chalk.cyan(`\n🧠 Deep Analysis:`));
+      console.log(chalk.white(result.explanation));
+      if (result.confidence_boost) {
+        console.log(chalk.gray(`\n💡 Analyzed locally with enhanced reasoning`));
+      }
+      break;
+      
+    case 'fallback':
+      console.log(chalk.yellow(`\n🤔 Bruno's Best Guess:`));
+      console.log(chalk.white(result.explanation));
+      if (result.suggestions && result.suggestions.length > 0) {
+        console.log(chalk.gray(`\n💭 Suggestions:`));
+        result.suggestions.forEach(suggestion => {
+          console.log(chalk.gray(`  • ${suggestion}`));
+        });
+      }
+      break;
+      
+    default:
+      console.log(chalk.cyan(`\n🤖 Bruno's Response:`));
+      console.log(chalk.white(result.explanation || JSON.stringify(result, null, 2)));
+      if (result.enhanced) {
+        console.log(chalk.gray(`\n🔄 Enhanced with local LLM`));
+      }
+  }
+}
+
 async function executeProjectAnalysis(projectPath, fsHandler) {
   console.log(chalk.cyan(`\n📊 Analyzing project: ${projectPath}`));
   
@@ -305,45 +515,125 @@ async function executeProjectAnalysis(projectPath, fsHandler) {
   console.log(fsHandler.formatTree(tree.slice(0, 10))); // Show first 10 items
 }
 
+async function handleSlashCommand(input, sessionManager, sessionId, rl) {
+  const command = input.slice(1).toLowerCase();
+  const parts = command.split(' ');
+  const cmd = parts[0];
+  const args = parts.slice(1);
+  
+  switch (cmd) {
+    case 'help':
+      showHelp();
+      break;
+      
+    case 'memory':
+      if (sessionManager && sessionId) {
+        const history = await sessionManager.getSessionHistory(sessionId, 10);
+        console.log(chalk.cyan('\n📝 Session History:'));
+        history.forEach((msg, index) => {
+          const time = new Date(msg.timestamp).toLocaleTimeString();
+          console.log(chalk.gray(`${index + 1}. [${time}] ${msg.input}`));
+          if (msg.output) {
+            console.log(chalk.gray(`   → ${msg.output.substring(0, 100)}...`));
+          }
+        });
+      } else {
+        console.log(chalk.yellow('⚠️  No active session'));
+      }
+      break;
+      
+    case 'sessions':
+      if (sessionManager) {
+        await sessionManager.listSessions(10);
+      } else {
+        console.log(chalk.yellow('⚠️  Session manager not available'));
+      }
+      break;
+      
+    case 'stats':
+      if (sessionManager) {
+        const stats = await sessionManager.getStats();
+        console.log(chalk.cyan('\n📊 Session Statistics:'));
+        console.log(chalk.gray(`Total sessions: ${stats.totalSessions}`));
+        console.log(chalk.gray(`Total messages: ${stats.totalMessages}`));
+        console.log(chalk.gray(`Current session: ${stats.currentSession || 'None'}`));
+      }
+      break;
+      
+    case 'clear':
+      console.clear();
+      break;
+      
+    default:
+      console.log(chalk.red(`❌ Unknown slash command: /${cmd}`));
+      console.log(chalk.gray('Available: /help, /memory, /sessions, /stats, /clear'));
+  }
+  
+  rl.prompt();
+}
+
 function showHelp() {
   console.log(`
-${chalk.bold('Commands:')}
-  help          - Show this help message
-  clear         - Clear the screen
-  memory        - Show memory summary
-  exit          - Exit the REPL
+${chalk.bold.cyan('📋 Bruno 3.0 Commands:')}
 
-${chalk.bold('File System:')}
-  read <file>   - Read file contents
-  write <file> <content> - Write to file
-  list <dir>    - List directory contents
-  ls <dir>      - Alias for list
-  tree <dir>    - Show directory tree
-  find <pattern> - Find files by name
-  analyze <dir> - Analyze project structure
-  project <dir> - Alias for analyze
+${chalk.bold('Basic:')}
+  help              - Show this help
+  clear             - Clear screen
+  memory            - Show conversation history
+  exit              - Exit REPL
 
-${chalk.bold('Shell Commands:')}
-  shell <cmd>   - Execute shell command (sandboxed)
-  run <cmd>     - Alias for shell
+${chalk.bold('Slash Commands (Claude Code CLI style):')}
+  /help             - Show this help
+  /memory           - Show session history
+  /sessions         - List all sessions
+  /stats            - Show session statistics
+  /clear            - Clear screen
 
-${chalk.bold('AI Tools:')}
-  fix <file>    - Fix code issues
-  explain <file> - Explain code
-  test <file>   - Generate tests
+${chalk.bold('🧠 Code Intelligence (Cursor-style):')}
+  explain <file>    - Semantic code explanation
+  fix <file>        - Fix with grouped edits
+  search <query>    - Semantic code search
+  refactor <file>   - Holistic refactoring
+  test <file>       - Generate comprehensive tests
 
-${chalk.bold('Privacy Features:')}
-  ✓ 100% local processing
-  ✓ No telemetry or tracking
-  ✓ No cloud dependencies
+${chalk.bold('📝 File Operations:')}
+  read <file>       - Read with full context
+  write <file> <content> - Write complete content
+  list <dir>        - List directory contents
+  ls <dir>          - Alias for list
+  tree <dir>        - Show directory tree
+  find <pattern>    - Find files (ripgrep-style)
+
+${chalk.bold('🎯 Advanced Features:')}
+  analyze <path>    - Project analysis with patterns
+  plan <task>       - Generate task plan (Manus-style)
+  deploy <service>  - Deploy to cloud services
+  create <type>     - Create with best practices
+
+${chalk.bold('🔧 Shell Commands:')}
+  shell <cmd>       - Execute shell command (sandboxed)
+  run <cmd>         - Alias for shell
+
+${chalk.bold('🌟 Universal Commands:')}
+  Just type any request naturally!
+  • "create a react dashboard with tailwind"
+  • "deploy my app to vercel"
+  • "fix all typescript errors"
+  • "explain this authentication flow"
+  • "generate IoT pipeline for camera data"
+
+${chalk.bold('🔒 Privacy Features:')}
+  ✓ 100% local processing with Ollama
+  ✓ Advanced patterns from leading AI systems
+  ✓ No telemetry or cloud dependencies
   ✓ File system sandboxing
   ✓ Automatic backups
+  ✓ Semantic search and holistic editing
 
-${chalk.bold('Examples:')}
-  bruno> read src/utils.js
-  bruno> write src/new.js "export const hello = 'world'"
-  bruno> analyze /path/to/project
-  bruno> explain src/auth.js
-  bruno> shell npm test
+${chalk.bold('💡 Pattern Examples:')}
+  bruno> explain src/auth.js                  # Cursor-style semantic analysis
+  bruno> create react component LoginForm     # Bolt-style artifact creation
+  bruno> plan build fullstack app with auth   # Manus-style task planning
+  bruno> deploy to vercel with environment    # Windsurf-style AI flow
   `);
 }

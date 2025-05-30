@@ -5,7 +5,7 @@ export class OllamaClient {
   constructor(config) {
     this.baseURL = config.ollama_url || 'http://127.0.0.1:11434';
     this.model = config.local_model || 'deepseek-coder:6.7b';
-    this.timeout = config.timeout || 30000;
+    this.timeout = config.timeout || 60000; // Increased to 60 seconds for slower models
   }
 
   async checkHealth() {
@@ -84,5 +84,10 @@ export class OllamaClient {
 
       response.data.on('error', reject);
     });
+  }
+
+  // Alias for generateCompletion to match UniversalRouter usage
+  async generateCompletion(prompt, options = {}) {
+    return await this.generate(prompt, options);
   }
 }

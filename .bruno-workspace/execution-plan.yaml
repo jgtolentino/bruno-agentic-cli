@@ -1,0 +1,25 @@
+id: flow-1748640342116-hzvda48d4
+userRequest: build and test my application
+steps:
+  - id: step-1
+    type: analysis
+    description: Analyze user request and determine requirements
+    agent: claude-code
+    inputs:
+      - user-request
+    outputs:
+      - requirements-analysis
+  - id: step-2
+    type: implementation
+    description: Implement solution based on requirements
+    agent: bruno
+    inputs:
+      - requirements-analysis
+    outputs:
+      - implementation-result
+metadata:
+  estimatedDuration: 5-10 minutes
+  complexity: medium
+  requiredTools:
+    - file-system
+    - code-analysis

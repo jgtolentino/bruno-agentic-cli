@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArtFin | Creative Economics Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        :root {
+            --primary: #4e54c8;
+            --secondary: #8f94fb;
+            --accent: #38ef7d;
+            --dark: #1a1a2e;
+            --darker: #0d0d1a;
+            --light: #f8f9fc;
+            --success: #4CAF50;
+            --warning: #FFC107;
+            --financial: #4e54c8;
+            --creative: #8f94fb;
+            --economic: #38ef7d;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--light);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            font-size: 2.5rem;
+            background: linear-gradient(90deg, var(--creative), var(--financial));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .logo h1 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(90deg, var(--creative), var(--financial));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        nav ul {
+            display: flex;
+            gap: 30px;
+            list-style: none;
+        }
+        
+        nav a {
+            color: var(--light);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+        }
+        
+        nav a:hover, nav a.active {
+            background: rgba(79, 84, 200, 0.2);
+            color: var(--creative);
+        }
+        
+        .user-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-financial {
+            background: var(--financial);
+            color: white;
+        }
+        
+        .btn-creative {
+            background: var(--creative);
+            color: white;
+        }
+        
+        .btn-economic {
+            background: var(--economic);
+            color: var(--darker);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .card {
+            background: rgba(42, 42, 60, 0.7);
+            border-radius: 20px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        .financial-title {
+            color: var(--financial);
+        }
+        
+        .creative-title {
+            color: var(--creative);
+        }
+        
+        .economic-title {
+            color: var(--economic);
+        }
+        
+        .card-icon {
+            font-size: 1.8rem;
+            color: var(--accent);
+        }
+        
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+        
+        /* Financial Cards */
+        .financial-card {
+            border-left: 4px solid var(--financial);
+        }
+        
+        .creative-card {
+            border-left: 4px solid var(--creative);
+        }
+        
+        .economic-card {
+            border-left: 4px solid var(--economic);
+        }
+        
+        /* Value Cards */
+        .value-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .value-card {
+            background: rgba(42, 42, 60, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .value-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 8px;
+        }
+        
+        .value-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .value-change {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .positive {
+            color: var(--economic);
+        }
+        
+        .negative {
+            color: var(--secondary);
+        }
+        
+        /* Portfolio Grid */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-top: 30px;
+        }
+        
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: rgba(26, 26, 46, 0.7);
+            padding: 10px;
+            border-radius: 15px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1400px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 1100px) {
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .value-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .portfolio-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            .value-cards {
+                grid-template-columns: 1fr;
+            }
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+            nav ul {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <i class="fas fa-chart-line logo-icon"></i>
+                <h1>ArtFin Dashboard</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">Dashboard</a></li>
+                    <li><a href="#">Financials</a></li>
+                    <li><a href="#">Projects</a></li>
+                    <li><a href="#">Market Analysis</a></li>
+                    <li><a href="#">Portfolio</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <button class="btn btn-outline">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+                <button class="btn btn-financial">
+                    <i class="fas fa-file-invoice-dollar"></i> Reports
+                </button>
+            </div>
+        </header>
+        
+        <!-- Value Cards -->
+        <div class="value-cards">
+            <div class="value-card">
+                <div class="value-label">TOTAL REVENUE</div>
+                <div class="value-amount">$128,420</div>
+                <div class="value-change positive">
+                    <i class="fas fa-arrow-up"></i> 12.4% vs last quarter
+                </div>
+            </div>
+            <div class="value-card">
+                <div class="value-label">PROFIT MARGIN</div>
+                <div class="value-amount">42.8%</div>
+                <div class="value-change positive">
+                    <i class="fas fa-arrow-up"></i> 3.2% vs last quarter
+                </div>
+            </div>
+            <div class="value-card">
+                <div class="value-label">ACTIVE PROJECTS</div>
+                <div class="value-amount">18</div>
+                <div class="value-change negative">
+                    <i class="fas fa-arrow-down"></i> 2 from last month
+                </div>
+            </div>
+            <div class="value-card">
+                <div class="value-label">CLIENT SATISFACTION</div>
+                <div class="value-amount">94.7%</div>
+                <div class="value-change positive">
+                    <i class="fas fa-arrow-up"></i> 1.5% vs last quarter
+                </div>
+            </div>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active">Financial Overview</div>
+            <div class="tab">Creative Analytics</div>
+            <div class="tab">Market Economics</div>
+            <div class="tab">Investment Portfolio</div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <!-- Financial Performance Card -->
+            <div class="card financial-card">
+                <div class="card-header">
+                    <h3 class="card-title financial-title">Financial Performance</h3>
+                    <i class="fas fa-coins card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="financialChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- ROI Analysis Card -->
+            <div class="card financial-card">
+                <div class="card-header">
+                    <h3 class="card-title financial-title">Project ROI Analysis</h3>
+                    <i class="fas fa-percentage card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="roiChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Market Trends Card -->
+            <div class="card economic-card">
+                <div class="card-header">
+                    <h3 class="card-title economic-title">Creative Market Trends</h3>
+                    <i class="fas fa-chart-line card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="marketChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Budget Allocation Card -->
+            <div class="card financial-card">
+                <div class="card-header">
+                    <h3 class="card-title financial-title">Budget Allocation</h3>
+                    <i class="fas fa-money-bill-wave card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="budgetChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Economic Indicators Card -->
+            <div class="card economic-card">
+                <div class="card-header">
+                    <h3 class="card-title economic-title">Economic Indicators</h3>
+                    <i class="fas fa-globe-americas card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <div id="economicChart" style="height: 250px;"></div>
+                </div>
+            </div>
+            
+            <!-- Creative Skill Value Card -->
+            <div class="card creative-card">
+                <div class="card-header">
+                    <h3 class="card-title creative-title">Skill Market Value</h3>
+                    <i class="fas fa-paint-brush card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="skillValueChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Client Acquisition Cost -->
+            <div class="card financial-card">
+                <div class="card-header">
+                    <h3 class="card-title financial-title">Client Acquisition Cost</h3>
+                    <i class="fas fa-user-plus card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="cacChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Industry Growth Projections -->
+            <div class="card economic-card">
+                <div class="card-header">
+                    <h3 class="card-title economic-title">Industry Growth</h3>
+                    <i class="fas fa-seedling card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <div id="growthChart" style="height: 250px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="portfolio-grid">
+            <!-- Investment Portfolio Card -->
+            <div class="card financial-card">
+                <div class="card-header">
+                    <h3 class="card-title financial-title">Investment Portfolio</h3>
+                    <i class="fas fa-chart-pie card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="portfolioChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Art Asset Valuation -->
+            <div class="card creative-card">
+                <div class="card-header">
+                    <h3 class="card-title creative-title">Art Asset Valuation</h3>
+                    <i class="fas fa-palette card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <canvas id="assetChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Economic Impact Card -->
+            <div class="card economic-card">
+                <div class="card-header">
+                    <h3 class="card-title economic-title">Creative Economy Impact</h3>
+                    <i class="fas fa-hand-holding-usd card-icon"></i>
+                </div>
+                <div class="chart-container">
+                    <div id="impactChart" style="height: 250px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>ArtFin Dashboard - Financial & Economic Analytics for Creative Professionals | © 2023</p>
+    </footer>
+
+    <script>
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Financial Performance Chart
+            const financialCtx = document.getElementById('financialChart').getContext('2d');
+            new Chart(financialCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    datasets: [
+                        {
+                            label: 'Revenue',
+                            data: [18500, 19200, 20400, 21800, 23000, 24500, 26200],
+                            fill: false,
+                            borderColor: 'rgba(78, 84, 200, 1)',
+                            backgroundColor: 'rgba(78, 84, 200, 0.2)',
+                            tension: 0.3,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Expenses',
+                            data: [12300, 11800, 12600, 13200, 14200, 13800, 14500],
+                            fill: false,
+                            borderColor: 'rgba(255, 101, 132, 1)',
+                            backgroundColor: 'rgba(255, 101, 132, 0.2)',
+                            tension: 0.3,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Profit',
+                            data: [6200, 7400, 7800, 8600, 8800, 10700, 11700],
+                            fill: false,
+                            borderColor: 'rgba(56, 239, 125, 1)',
+                            backgroundColor: 'rgba(56, 239, 125, 0.2)',
+                            tension: 0.3,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.8)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // ROI Analysis Chart
+            const roiCtx = document.getElementById('roiChart').getContext('2d');
+            new Chart(roiCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Brand Campaign', 'Product Launch', 'Social Media', 'Client Website', 'AI Art Project'],
+                    datasets: [{
+                        label: 'ROI Percentage',
+                        data: [220, 180, 320, 150, 410],
+                        backgroundColor: [
+                            'rgba(78, 84, 200, 0.8)',
+                            'rgba(143, 148, 251, 0.8)',
+                            'rgba(56, 239, 125, 0.8)',
+                            'rgba(78, 84, 200, 0.5)',
+                            'rgba(143, 148, 251, 0.5)'
+                        ],
+                        borderColor: [
+                            'rgba(78, 84, 200, 1)',
+                            'rgba(143, 148, 251, 1)',
+                            'rgba(56, 239, 125, 1)',
+                            'rgba(78, 84, 200, 1)',
+                            'rgba(143, 148, 251, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Market Trends Chart
+            const marketCtx = document.getElementById('marketChart').getContext('2d');
+            new Chart(marketCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2019', '2020', '2021', '2022', '2023'],
+                    datasets: [
+                        {
+                            label: 'AI-Generated Art Market',
+                            data: [120, 180, 320, 640, 1280],
+                            fill: false,
+                            borderColor: 'rgba(78, 84, 200, 1)',
+                            tension: 0.3,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Digital Illustrations',
+                            data: [480, 520, 580, 620, 680],
+                            fill: false,
+                            borderColor: 'rgba(143, 148, 251, 1)',
+                            tension: 0.3,
+                            pointRadius: 4
+                        },
+                        {
+                            label: '3D Design Services',
+                            data: [320, 380, 450, 520, 610],
+                            fill: false,
+                            borderColor: 'rgba(56, 239, 125, 1)',
+                            tension: 0.3,
+                            pointRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value + 'M';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.8)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Budget Allocation Chart
+            const budgetCtx = document.getElementById('budgetChart').getContext('2d');
+            new Chart(budgetCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Software Tools', 'Marketing', 'Education', 'Hardware', 'Contractors', 'Operations'],
+                    datasets: [{
+                        label: 'Budget Allocation',
+                        data: [25, 20, 15, 18, 12, 10],
+                        backgroundColor: [
+                            'rgba(78, 84, 200, 0.8)',
+                            'rgba(143, 148, 251, 0.8)',
+                            'rgba(56, 239, 125, 0.8)',
+                            'rgba(255, 101, 132, 0.8)',
+                            'rgba(255, 193, 7, 0.8)',
+                            'rgba(76, 175, 80, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(78, 84, 200, 1)',
+                            'rgba(143, 148, 251, 1)',
+                            'rgba(56, 239, 125, 1)',
+                            'rgba(255, 101, 132, 1)',
+                            'rgba(255, 193, 7, 1)',
+                            'rgba(76, 175, 80, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Economic Indicators Chart (ApexCharts)
+            var economicOptions = {
+                series: [{
+                    name: 'Inflation',
+                    data: [2.1, 2.3, 2.5, 2.7, 3.1, 3.8, 4.2]
+                }],
+                chart: {
+                    height: '100%',
+                    type: 'bar',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        borderRadius: 10,
+                        dataLabels: {
+                            position: 'top',
+                        },
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val + "%";
+                    },
+                    offsetY: -20,
+                    style: {
+                        fontSize: '12px',
+                        colors: ["#fff"]
+                    }
+                },
+                xaxis: {
+                    categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+                    position: 'bottom',
+                    axisBorder: {
+                        show: false
+                    },
+                    axisTicks: {
+                        show: false
+                    },
+                    labels: {
+                        style: {
+                            colors: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                },
+                yaxis: {
+                    axisBorder: {
+                        show: false
+                    },
+                    axisTicks: {
+                        show: false,
+                    },
+                    labels: {
+                        show: false,
+                        formatter: function (val) {
+                            return val + "%";
+                        },
+                        style: {
+                            colors: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                },
+                grid: {
+                    show: false
+                },
+                fill: {
+                    colors: ['rgba(56, 239, 125, 0.8)']
+                },
+                tooltip: {
+                    theme: 'dark'
+                }
+            };
+
+            var economicChart = new ApexCharts(document.querySelector("#economicChart"), economicOptions);
+            economicChart.render();
+            
+            // Skill Market Value Chart
+            const skillValueCtx = document.getElementById('skillValueChart').getContext('2d');
+            new Chart(skillValueCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['AI Art Generation', '3D Modeling', 'Motion Design', 'UI/UX Design', 'Brand Strategy'],
+                    datasets: [{
+                        label: 'Hourly Rate ($)',
+                        data: [120, 95, 85, 110, 150],
+                        backgroundColor: 'rgba(143, 148, 251, 0.8)',
+                        borderColor: 'rgba(143, 148, 251, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Client Acquisition Cost Chart
+            const cacCtx = document.getElementById('cacChart').getContext('2d');
+            new Chart(cacCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Q1 2022', 'Q2 2022', 'Q3 2022', 'Q4 2022', 'Q1 2023', 'Q2 2023'],
+                    datasets: [{
+                        label: 'Cost Per Client ($)',
+                        data: [420, 380, 350, 320, 290, 260],
+                        fill: false,
+                        borderColor: 'rgba(78, 84, 200, 1)',
+                        backgroundColor: 'rgba(78, 84, 200, 0.2)',
+                        tension: 0.3,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value;
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.8)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Industry Growth Projections Chart (ApexCharts)
+            var growthOptions = {
+                series: [{
+                    name: 'Creative Industry Growth',
+                    data: [4.2, 5.1, 6.3, 7.8, 9.2, 11.5, 14.0]
+                }],
+                chart: {
+                    height: '100%',
+                    type: 'area',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    colors: ['#38ef7d'],
+                    width: 3
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.1,
+                        stops: [0, 100]
+                    },
+                    colors: ['rgba(56, 239, 125, 0.2)']
+                },
+                xaxis: {
+                    categories: ['2017', '2018', '2019', '2020', '2021', '2022', '2023'],
+                    labels: {
+                        style: {
+                            colors: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: 'rgba(255, 255, 255, 0.7)'
+                        },
+                        formatter: function (val) {
+                            return val + "%";
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    strokeDashArray: 4
+                },
+                tooltip: {
+                    theme: 'dark'
+                }
+            };
+
+            var growthChart = new ApexCharts(document.querySelector("#growthChart"), growthOptions);
+            growthChart.render();
+            
+            // Portfolio Chart
+            const portfolioCtx = document.getElementById('portfolioChart').getContext('2d');
+            new Chart(portfolioCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Stocks', 'Crypto', 'Real Estate', 'Art NFTs', 'Bonds'],
+                    datasets: [{
+                        label: 'Investment Portfolio',
+                        data: [35, 20, 25, 15, 5],
+                        backgroundColor: [
+                            'rgba(78, 84, 200, 0.8)',
+                            'rgba(143, 148, 251, 0.8)',
+                            'rgba(56, 239, 125, 0.8)',
+                            'rgba(255, 101, 132, 0.8)',
+                            'rgba(255, 193, 7, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(78, 84, 200, 1)',
+                            'rgba(143, 148, 251, 1)',
+                            'rgba(56, 239, 125, 1)',
+                            'rgba(255, 101, 132, 1)',
+                            'rgba(255, 193, 7, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: 'rgba(255, 255, 255, 0.8)',
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Art Asset Valuation
+            const assetCtx = document.getElementById('assetChart').getContext('2d');
+            new Chart(assetCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Digital Collection', 'Brand Assets', '3D Models', 'Motion Templates', 'AI Art Series'],
+                    datasets: [{
+                        label: 'Estimated Value ($)',
+                        data: [28500, 42000, 18200, 15600, 32400],
+                        backgroundColor: 'rgba(143, 148, 251, 0.8)',
+                        borderColor: 'rgba(143, 148, 251, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)',
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(255, 255, 255, 0.7)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Economic Impact Chart (ApexCharts)
+            var impactOptions = {
+                series: [{
+                    name: 'Creative Economy Contribution',
+                    data: [3.5, 4.2, 5.1, 6.0, 7.2, 8.5, 10.0]
+                }],
+                chart: {
+                    height: '100%',
+                    type: 'line',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                stroke: {
+                    width: 5,
+                    curve: 'smooth',
+                    colors: ['#38ef7d']
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shade: 'dark',
+                        gradientToColors: ['#8f94fb'],
+                        shadeIntensity: 1,
+                        type: 'horizontal',
+                        opacityFrom: 0.8,
+                        opacityTo: 0.8,
+                        stops: [0, 100]
+                    },
+                },
+                markers: {
+                    size: 6,
+                    colors: ['#38ef7d'],
+                    strokeWidth: 0
+                },
+                xaxis: {
+                    categories: ['2017', '2018', '2019', '2020', '2021', '2022', '2023'],
+                    labels: {
+                        style: {
+                            colors: 'rgba(255, 255, 255, 0.7)'
+                        }
+                    }
+                },
+                yaxis: {
+                    min: 0,
+                    max: 12,
+                    labels: {
+                        style: {
+                            colors: 'rgba(255, 255, 255, 0.7)'
+                        },
+                        formatter: function (val) {
+                            return val + "%";
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    strokeDashArray: 4
+                },
+                tooltip: {
+                    theme: 'dark'
+                }
+            };
+
+            var impactChart = new ApexCharts(document.querySelector("#impactChart"), impactOptions);
+            impactChart.render();
+            
+            // Tab switching
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

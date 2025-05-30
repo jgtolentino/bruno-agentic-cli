@@ -1,13 +1,26 @@
-export async function handleTool(toolName, input) {
+import { UniversalRouter } from './universalRouter.js';
+
+let universalRouter = null;
+
+function getUniversalRouter(config) {
+  if (!universalRouter) {
+    universalRouter = new UniversalRouter(config);
+  }
+  return universalRouter;
+}
+
+export async function handleTool(toolName, input, config = {}) {
   const tools = {
     fix: () => import('../agents/fix.js').then(m => m.run(input)),
     explain: () => import('../agents/explain.js').then(m => m.run(input)),
-    test: () => import('../agents/test.js').then(m => m.run(input))
+    test: () => import('../agents/test.js').then(m => m.run(input)),
+    universal: () => getUniversalRouter(config).route(input)
   };
 
   const handler = tools[toolName];
   if (!handler) {
-    throw new Error(`Unknown tool: ${toolName}`);
+    // Try universal router for unrecognized commands
+    return await getUniversalRouter(config).route(input);
   }
 
   return await handler();

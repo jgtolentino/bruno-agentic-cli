@@ -1,21 +1,31 @@
 {
   "name": "bruno-agentic-cli",
-  "version": "2.0.0",
-  "description": "Claude-powered agentic CLI for code analysis and assistance",
+  "version": "3.1.0",
+  "description": "Claude 4-enhanced local AI CLI with context awareness",
   "type": "module",
   "bin": {
-    "bruno": "./bin/bruno.js"
+    "bruno": "./bin/bruno.js",
+    "bruno31": "./bin/bruno-v31.js"
   },
   "scripts": {
     "start": "node bin/bruno.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start:v31": "node bin/bruno-v31.js",
+    "test": "npm run test:basic && npm run test:v31",
+    "test:basic": "node bin/bruno.js --version && node bin/bruno.js --help",
+    "test:v31": "./tests/validate.sh",
+    "dev": "node bin/bruno-v31.js",
+    "link:global": "npm link",
+    "unlink:global": "npm unlink -g bruno-agentic-cli"
   },
   "keywords": [
     "cli",
-    "claude",
     "ai",
+    "local-first",
+    "claude-4",
+    "context-aware",
     "code-assistant",
-    "developer-tools"
+    "developer-tools",
+    "ollama"
   ],
   "author": "JG Tolentino",
   "license": "MIT",

@@ -1,0 +1,28 @@
+{
+  "version": "3.1.0",
+  "mode": "claude4",
+  "offline": true,
+  "debug": false,
+  "model": "deepseek-coder:6.7b",
+  "contextDepth": 3,
+  "maxOutputTokens": 2048,
+  "features": {
+    "contextAwareness": true,
+    "slashCommands": true,
+    "smartModeSwitching": true,
+    "fileAnalysis": true,
+    "sessionPersistence": true,
+    "typoCorrection": true
+  },
+  "ui": {
+    "showTimestamps": false,
+    "syntaxHighlighting": true,
+    "useColors": true,
+    "compactMode": false
+  },
+  "memory": {
+    "maxConversations": 50,
+    "autoSave": true,
+    "saveInterval": 300000
+  }
+}

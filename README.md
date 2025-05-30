@@ -1,50 +1,384 @@
-# Bruno Agentic CLI v2.0 - Local-First Edition
+# Bruno Agentic CLI
 
-Bruno is a **100% private, 100% offline** AI-powered CLI that helps you understand, fix, and test code without any data leaving your machine. Built on local LLMs, Bruno delivers powerful AI assistance while respecting your privacy.
+🤖 **Multi-agent AI automation system** with verification-first execution and secure credential management.
 
-## 🚀 Features
+## 🎯 Overview
 
-- **🔐 Local-First**: All processing happens on your machine - no cloud, no telemetry
-- **🤖 Ollama Integration**: Powered by local models like DeepSeek Coder
-- **💬 Interactive REPL**: Natural conversation interface with local memory
-- **🔧 Smart Tools**: Automatic tool selection for explain, fix, and test operations
-- **🛡️ Shell Sandboxing**: Safe execution of shell commands with protection
-- **📝 Context Awareness**: Maintains conversation history locally
-- **🎨 Beautiful Output**: Color-coded responses with clear formatting
-- **⚡ Fast & Private**: No network latency, complete privacy
+Bruno Agentic CLI is a complete multi-agent system that orchestrates tasks between:
 
-## 📦 Installation
+- **Claude.ai** (Planner) - High-level planning and task validation
+- **Claude Code CLI** (Orchestrator) - API operations with secure credential injection
+- **Bruno** (Executor) - Local operations with mandatory verification
 
+## 🛡️ Key Security Features
+
+- **🔒 Verification-First Execution** - No success claims without proof
+- **🔑 Secure Credential Injection** - Automatic secret management with log sanitization
+- **📤 Intelligent Delegation** - Tasks routed to appropriate agents automatically
+- **📊 Complete Audit Trail** - All operations logged with timestamps
+- **🚫 False Success Prevention** - Bruno will NEVER echo hallucinated success
+
+## 🚀 Quick Start
+
+### 1. Install the Complete System
 ```bash
-npm install -g bruno-agentic-cli
+git clone <repo-url>
+cd bruno-agentic-cli
+./install-bruno-agentic.sh
 ```
 
-## 🔑 Setup
+### 2. Test Installation
+```bash
+./test-installation.sh
+```
 
-1. **Install Ollama**:
-   ```bash
-   # macOS
-   brew install ollama
-   
-   # Linux
-   curl -fsSL https://ollama.ai/install.sh | sh
-   ```
+### 3. Initialize Components
+```bash
+# Initialize secure executor with API credentials
+~/.bruno/init-secure-executor.sh
 
-2. **Pull the model**:
-   ```bash
-   ollama pull deepseek-coder:6.7b
-   ```
+# Initialize sample verification tasks
+~/.bruno/init-sample-tasks.sh
 
-3. **Start Ollama server**:
-   ```bash
-   ollama serve
-   ```
+# Start MCP file server
+~/.bruno/start-mcp-server.sh
+```
 
-## 🎯 Usage
+### 4. Test the System
+```bash
+# Test Bruno verification
+bruno-verify-global simple-test.yaml --verbose
+
+# Test secure executor
+clodrep-global test --verbose
+
+# Test multi-agent orchestration
+bruno-agent-global "build and test my application"
+```
+
+## 🔧 Components
+
+### 🤖 Bruno (Verification-First Executor)
+```bash
+# Execute tasks with mandatory verification
+bruno verify deployment-tasks.yaml --verbose
+
+# Single command with verification
+bruno --verify-task "npm run build && npm test"
+
+# Interactive mode with verification
+bruno-global
+```
+
+**Key Features:**
+- Mandatory verification for all operations
+- Automatic delegation to secure executor for API tasks
+- Complete audit logging
+- No false success claims
+
+### 🔐 Secure Executor (Claude Code CLI Automation)
+```bash
+# Run API automation tasks
+clodrep-global run sample-tasks.yaml --verbose
+
+# Preview mode (dry run)
+clodrep-global dry-run deploy-tasks.yaml
+
+# Check loaded credentials
+clodrep-global secrets
+```
+
+**Key Features:**
+- Automatic secret injection using `{{TOKEN_NAME}}` placeholders
+- Command sanitization in logs
+- Real-world verification (HTTP status, API responses)
+- Integration with 25+ services (GitHub, Notion, Vercel, Slack, etc.)
+
+### 🎼 Agent Router (Multi-Agent Orchestration)
+```bash
+# Orchestrate complex workflows
+bruno-agent-global "deploy my app and notify the team"
+
+# Execute plans from YAML
+bruno-agent-global --plan-file deployment-plan.yaml
+```
+
+**Key Features:**
+- Intelligent task routing between agents
+- Shared `.plan.yaml` format for agent communication
+- Execution monitoring and reporting
+- Failure handling and retry logic
+
+## 📋 Task Examples
+
+### Simple Verification Task
+```yaml
+- id: "build-app"
+  task: "Build React application"
+  command: "npm run build"
+  verify: "test -d build && test -f build/index.html"
+  success_condition: "0"
+  comparison_type: "numeric"
+  fail_message: "❌ Build failed or output missing"
+```
+
+### API Task with Secret Injection
+```yaml
+- id: "notify-slack"
+  task: "Send Slack deployment notification"
+  command: |
+    curl -X POST https://slack.com/api/chat.postMessage \
+      -H "Authorization: Bearer {{SLACK_TOKEN}}" \
+      -H "Content-Type: application/json" \
+      -d '{"channel": "#deploy", "text": "🚀 Deployment complete!"}'
+  verify: 'curl -s -H "Authorization: Bearer {{SLACK_TOKEN}}" "https://slack.com/api/auth.test" | jq -r ".ok"'
+  success_condition: "true"
+  fail_message: "❌ Slack notification failed"
+```
+
+### Delegated Task
+```yaml
+- id: "local-operations"
+  task: "Run local build and tests"
+  agent: executor
+  command: "npm run build && npm test"
+  delegate_to: "bruno"
+  verify: "test -d build && npm run test:verify"
+  success_condition: "0"
+  comparison_type: "numeric"
+```
+
+## 🔄 Multi-Agent Workflow
+
+```
+1. Claude.ai (Planner)
+   ├── Analyzes user request
+   ├── Creates execution plan
+   └── Defines verification requirements
+
+2. Claude Code CLI (Orchestrator)
+   ├── Handles API operations
+   ├── Injects secrets securely
+   ├── Manages complex auth flows
+   └── Delegates local tasks to Bruno
+
+3. Bruno (Executor)
+   ├── Executes local operations
+   ├── Verifies all results
+   ├── Reports actual success/failure
+   └── Maintains audit trail
+```
+
+## 🔐 Security Architecture
+
+### Secret Management
+- **Storage**: Secrets in `.clodrep.env` (never committed)
+- **Injection**: Automatic `{{TOKEN_NAME}}` replacement
+- **Logging**: All secrets automatically redacted
+- **Isolation**: API operations separated from local operations
+
+### Verification System
+- **Mandatory**: Every operation must include verification
+- **Real-World**: Check actual conditions (HTTP status, file existence)
+- **Comparison Types**: Exact, contains, numeric, regex
+- **Failure Handling**: Clear error messages with context
+
+### Delegation Rules
+Tasks are automatically delegated based on:
+- **External APIs**: Require secure executor
+- **Authentication**: OAuth, JWT, API keys
+- **Dynamic Payloads**: LLM-generated JSON
+- **Local Operations**: File system, git, builds → Bruno
+
+## 📚 Documentation
+
+- **[Delegation Guide](DELEGATION_GUIDE.md)** - Task delegation patterns and security
+- **[Secure Executor Guide](clodrep/README.md)** - API automation with credentials
+- **[Plan Schema](schemas/plan-schema.yaml)** - Multi-agent communication format
+- **[Examples](examples/)** - Sample tasks and workflows
+
+## 🧪 Testing
+
+### Installation Test
+```bash
+./test-installation.sh  # Validates complete installation
+```
+
+### Component Tests
+```bash
+# Test Bruno verification
+bruno verify examples/local-only-examples.yaml --verbose
+
+# Test secure executor
+clodrep-global test --verbose
+
+# Test delegation patterns
+bruno-delegate analyze examples/delegation-examples.yaml
+```
+
+### End-to-End Test
+```bash
+# Complete workflow test
+bruno-agent-global "test the complete system with verification"
+```
+
+## 🔧 Configuration
+
+### Main Configuration (`~/.bruno/config.yaml`)
+```yaml
+verification:
+  enabled: true
+  strict_mode: true
+  delegation_enabled: true
+
+agents:
+  claude_code:
+    secure_executor: "~/.bruno/clodrep/clodrep"
+  bruno:
+    verification: true
+
+mcp:
+  enabled: true
+  port: 8001
+```
+
+### Secure Executor Secrets (`~/.bruno/clodrep/.clodrep.env`)
+```bash
+GITHUB_TOKEN=ghp_your_token
+NOTION_TOKEN=secret_token
+VERCEL_TOKEN=vercel_token
+SLACK_TOKEN=xoxb_token
+# ... 25+ more services
+```
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+**Installation Failed**
+```bash
+# Check prerequisites
+node --version  # Requires Node.js 16+
+python3 --version  # Requires Python 3.8+
+npm --version
+
+# Retry installation
+./install-bruno-agentic.sh
+```
+
+**Verification Failed**
+```bash
+# Check Bruno verifier
+bruno verify simple-test.yaml --verbose
+
+# Check delegation
+bruno-delegate analyze task.yaml
+```
+
+**Secrets Not Working**
+```bash
+# Check secrets loaded
+clodrep-global secrets
+
+# Verify env file
+ls ~/.bruno/clodrep/.clodrep.env
+```
+
+**Multi-Agent Not Working**
+```bash
+# Check MCP server
+curl http://localhost:8001/health
+
+# Test agent router
+bruno-agent-global --test
+```
+
+## 🛡️ Security Best Practices
+
+1. **Never commit `.clodrep.env`** to version control
+2. **Use specific verification conditions** - be explicit about success
+3. **Monitor execution logs** for security issues
+4. **Rotate secrets regularly** using the env file
+5. **Test with dry-run first** before production execution
+6. **Review delegation patterns** for appropriate security boundaries
+
+## 🎯 Use Cases
+
+### DevOps Automation
+- Automated deployments with verification
+- Multi-service notifications
+- Infrastructure provisioning
+- Monitoring setup
+
+### Content Management
+- Notion page creation
+- Documentation updates
+- Knowledge base maintenance
+- Team notifications
+
+### Development Workflows
+- CI/CD pipeline automation
+- Code deployment
+- Testing automation
+- Release management
+
+### Business Operations
+- Customer notifications
+- Data synchronization
+- Report generation
+- Workflow automation
+
+## 📈 Monitoring
+
+### Execution Reports
+```bash
+# View execution logs
+ls ~/.bruno/logs/
+
+# Check delegation queue
+ls ~/.bruno-workspace/delegation-queue/
+
+# Monitor MCP server
+curl http://localhost:8001/audit
+```
+
+### Success Metrics
+- **Verification Rate**: % of tasks with successful verification
+- **Delegation Accuracy**: % of tasks routed to correct agent
+- **Security Score**: % of operations with proper secret handling
+- **Reliability**: % of real success vs claimed success
+
+## 🌟 Key Benefits
+
+- **🛡️ Security**: Proper credential management and verification
+- **🔄 Reliability**: No false success claims, real-world verification
+- **📈 Scalability**: Multi-agent architecture handles complex workflows
+- **🎯 Flexibility**: Supports 25+ services out of the box
+- **📊 Observability**: Complete audit trail and monitoring
+- **🚀 Productivity**: Automated workflows with human oversight
+
+Bruno Agentic CLI ensures your automation is both powerful and secure, with proper verification at every step and intelligent delegation between specialized agents.
+
+---
+
+## 🚀 Legacy Bruno v3.0 Features
+
+Bruno also includes the original v3.0 features for local AI development:
+
+### 🔐 Privacy-First Foundation
+- **100% Local Processing**: All AI computation happens on your machine via Ollama
+- **Zero Telemetry**: No data collection, tracking, or cloud dependencies
+- **Offline Operation**: Works completely without internet connectivity
+
+### 🧠 Advanced AI Patterns Integration
+- **🎯 Cursor IDE Patterns**: Semantic code search, holistic editing
+- **🌊 Windsurf AI Flow**: Independent task execution, professional communication
+- **⚡ Bolt Artifact System**: Think-first holistic creation
+- **🔄 Manus Agent Loop**: Multi-step task planning
 
 ### Interactive REPL
 ```bash
-bruno
+bruno  # Start interactive mode
 ```
 
 ### Direct Commands
@@ -54,101 +388,4 @@ bruno fix src/auth.js
 bruno test src/calculator.js
 ```
 
-### REPL Commands
-- `help` - Show available commands
-- `clear` - Clear the screen
-- `memory` - Show conversation memory
-- `exit` - Exit the REPL
-
-## 🛠️ Configuration
-
-Create a `config/brunorc.yaml`:
-
-```yaml
-agent: bruno
-model: claude-3-sonnet-20240229
-llm_provider: anthropic
-memory: true
-default_tool: explain
-repl_mode: true
-max_tokens: 2048
-temperature: 0.7
-```
-
-## 📂 Project Structure
-
-```
-bruno-agentic-cli/
-├── bin/bruno.js          # CLI entry point
-├── core/                 # Core modules
-│   ├── promptLoader.js   # System prompt management
-│   ├── toolRouter.js     # Tool routing logic
-│   └── memoryManager.js  # Conversation memory
-├── agents/               # Tool implementations
-│   ├── explain.js        # Code explanation
-│   ├── fix.js           # Bug fixing
-│   └── test.js          # Test generation
-├── shell/repl.js        # Interactive REPL
-└── prompts/             # System prompts
-```
-
-## 🤝 Examples
-
-### Explain Code
-```bash
-bruno> explain src/auth.js
-```
-
-### Fix Issues
-```bash
-bruno> fix the authentication bug in auth.js
-```
-
-### Generate Tests
-```bash
-bruno> generate tests for calculator.js using jest
-```
-
-### Run Shell Commands (Sandboxed)
-```bash
-bruno> shell npm test
-bruno> run git status
-```
-
-## 🛡️ Privacy & Security
-
-Bruno is designed with privacy as the #1 priority:
-
-- **No Cloud Dependencies**: Everything runs locally
-- **No Telemetry**: Zero tracking or analytics
-- **No API Keys**: No registration or authentication
-- **Shell Sandboxing**: Dangerous commands are blocked
-- **Local Sessions**: All data stays on your machine
-
-### Blocked Commands
-- `rm -rf`, `sudo`, `curl`, `wget`, `ssh`
-
-### Warning Commands
-- `rm`, `mv`, `cp -r`
-
-## 🧠 Memory System
-
-Bruno maintains conversation context:
-- Remembers recent interactions
-- Maintains project context
-- Allows follow-up questions
-
-## 🎨 Customization
-
-Extend Bruno by:
-1. Adding new agents in `agents/`
-2. Updating tool schema in `prompts/tool_schema.json`
-3. Modifying system prompt in `prompts/bruno_prompt.txt`
-
-## 📄 License
-
-MIT
-
----
-
-Built with ❤️ using Claude's API
+📄 **License**: MIT

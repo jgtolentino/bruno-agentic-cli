@@ -1,0 +1,283 @@
+# Marketing-specific flows for ClaudeFlow
+
+social_media_campaign:
+  description: "Generate social media campaign content across multiple platforms"
+  variables:
+    brand_name: "Brand or company name"
+    campaign_theme: "Main campaign theme or message"
+    target_audience: "Description of target audience"
+    platforms: "List of social media platforms (Twitter, LinkedIn, Instagram, etc.)"
+    tone: "Brand voice/tone (professional, casual, playful, etc.)"
+  steps:
+    strategy_development:
+      type: claude
+      model: "claude-3-opus-20240229"
+      max_tokens: 2048
+      temperature: 0.6
+      system_prompt: |
+        You are a social media marketing strategist. Create comprehensive, 
+        platform-specific content strategies that align with brand voice and 
+        maximize engagement for each platform's unique audience and format.
+      prompt: |
+        Create a social media campaign strategy for {{brand_name}} with the theme "{{campaign_theme}}".
+        
+        Target audience: {{target_audience}}
+        Platforms: {{platforms}}
+        Brand tone: {{tone}}
+        
+        Please provide:
+        1. Overall campaign strategy and key messages
+        2. Platform-specific content recommendations
+        3. Hashtag suggestions
+        4. Posting schedule recommendations
+        5. Engagement tactics
+        
+        Format your response clearly with sections for each platform.
+    
+    content_creation:
+      type: claude
+      model: "claude-3-opus-20240229"
+      max_tokens: 3072
+      temperature: 0.7
+      system_prompt: |
+        You are a creative content writer specializing in social media. 
+        Create engaging, platform-optimized content that drives engagement 
+        and aligns with the brand's voice and campaign strategy.
+      prompt: |
+        Based on this campaign strategy:
+        
+        {{content}}
+        
+        Create specific social media posts for {{brand_name}}'s "{{campaign_theme}}" campaign.
+        
+        For each platform in {{platforms}}, create:
+        - 5 unique posts with captions
+        - Relevant hashtags
+        - Call-to-action suggestions
+        - Visual content descriptions
+        
+        Ensure content matches the {{tone}} brand voice and engages {{target_audience}}.
+        
+        Format each post clearly with platform name, caption, hashtags, and notes.
+    
+    campaign_document:
+      type: google_docs
+      action: create
+      title: "Social Media Campaign: {{campaign_theme}} - {{brand_name}}"
+      content_key: content
+
+email_newsletter_generator:
+  description: "Generate email newsletter content with subject lines and CTAs"
+  variables:
+    company_name: "Company name"
+    newsletter_topic: "Main topic or theme"
+    audience_segment: "Target audience segment"
+    key_announcements: "Important news or announcements to include"
+    cta_goal: "Primary call-to-action goal"
+  steps:
+    newsletter_creation:
+      type: claude
+      model: "claude-3-opus-20240229"
+      max_tokens: 3072
+      temperature: 0.7
+      system_prompt: |
+        You are an email marketing specialist who creates engaging newsletters 
+        that drive opens, clicks, and conversions. Focus on compelling subject 
+        lines, scannable content, and clear calls-to-action.
+      prompt: |
+        Create an email newsletter for {{company_name}} about "{{newsletter_topic}}".
+        
+        Target audience: {{audience_segment}}
+        Key announcements: {{key_announcements}}
+        Primary CTA goal: {{cta_goal}}
+        
+        Please include:
+        
+        **Subject Line Options** (5 variations)
+        - Include emoji and urgency where appropriate
+        
+        **Newsletter Content:**
+        - Engaging opening
+        - Main content sections with headers
+        - Key announcements section
+        - Clear call-to-action
+        - Footer content
+        
+        **Additional Elements:**
+        - Preview text suggestion
+        - Social media links
+        - Unsubscribe compliance note
+        
+        Format in a clean, professional newsletter layout with HTML-style headers.
+    
+    newsletter_document:
+      type: google_docs
+      action: create
+      title: "Newsletter: {{newsletter_topic}} - {{company_name}}"
+      content_key: content
+
+product_launch_content:
+  description: "Generate comprehensive product launch content package"
+  variables:
+    product_name: "Name of the product being launched"
+    product_description: "Detailed product description and features"
+    target_market: "Primary target market and customer personas"
+    unique_value_prop: "Unique value proposition and differentiators"
+    launch_date: "Product launch date"
+    pricing: "Pricing information"
+  steps:
+    press_release:
+      type: claude
+      model: "claude-3-opus-20240229"
+      max_tokens: 2048
+      temperature: 0.5
+      system_prompt: |
+        You are a PR professional who writes compelling press releases that 
+        capture media attention and communicate product value clearly to journalists.
+      prompt: |
+        Write a professional press release for the launch of {{product_name}}.
+        
+        Product details:
+        - Description: {{product_description}}
+        - Target market: {{target_market}}
+        - Value proposition: {{unique_value_prop}}
+        - Launch date: {{launch_date}}
+        - Pricing: {{pricing}}
+        
+        Include:
+        - Attention-grabbing headline
+        - Compelling lead paragraph
+        - Product benefits and features
+        - Market context and significance
+        - Company quote from spokesperson
+        - Technical specifications if relevant
+        - Contact information placeholder
+        
+        Follow standard press release format with FOR IMMEDIATE RELEASE header.
+    
+    marketing_copy:
+      type: claude
+      model: "claude-3-opus-20240229"
+      max_tokens: 3072
+      temperature: 0.6
+      system_prompt: |
+        You are a marketing copywriter who creates persuasive, benefit-focused 
+        content that converts prospects into customers.
+      prompt: |
+        Create marketing copy for {{product_name}} launch targeting {{target_market}}.
+        
+        Product info:
+        {{product_description}}
+        
+        Value proposition: {{unique_value_prop}}
+        Pricing: {{pricing}}
+        
+        Create:
+        
+        **Website Landing Page Copy:**
+        - Hero headline and subheadline
+        - Features and benefits section
+        - Social proof section
+        - FAQ section
+        - CTA buttons text
+        
+        **Email Announcement:**
+        - Subject line
+        - Email body with announcement
+        - Early access or special offer
+        
+        **Social Media Announcements:**
+        - Twitter launch tweet
+        - LinkedIn announcement post
+        - Instagram caption
+        
+        Focus on benefits over features and include compelling CTAs.
+    
+    launch_package:
+      type: google_docs
+      action: create
+      title: "Product Launch Package: {{product_name}}"
+      content_key: content
+
+brand_voice_guide:
+  description: "Develop comprehensive brand voice and messaging guidelines"
+  variables:
+    brand_name: "Brand or company name"
+    industry: "Industry or market sector"
+    brand_personality: "Desired brand personality traits"
+    target_demographics: "Target customer demographics"
+    competitor_analysis: "Key competitors and positioning"
+    brand_values: "Core brand values and mission"
+  steps:
+    voice_analysis:
+      type: claude
+      model: "claude-3-opus-20240229"
+      max_tokens: 2048
+      temperature: 0.4
+      system_prompt: |
+        You are a brand strategist who develops distinctive brand voices that 
+        resonate with target audiences and differentiate from competitors.
+      prompt: |
+        Analyze and define the brand voice for {{brand_name}} in the {{industry}} industry.
+        
+        Brand context:
+        - Personality traits: {{brand_personality}}
+        - Target demographics: {{target_demographics}}
+        - Key competitors: {{competitor_analysis}}
+        - Core values: {{brand_values}}
+        
+        Provide analysis of:
+        1. Recommended brand voice characteristics
+        2. Tone variations for different contexts
+        3. Language preferences (formal/casual, technical/simple)
+        4. Words and phrases to use/avoid
+        5. Differentiation from competitors
+        6. Voice adaptation for different channels
+        
+        Make recommendations specific and actionable.
+    
+    messaging_framework:
+      type: claude
+      model: "claude-3-opus-20240229"
+      max_tokens: 3072
+      temperature: 0.5
+      system_prompt: |
+        You are a brand messaging expert who creates comprehensive messaging 
+        frameworks that ensure consistent communication across all touchpoints.
+      prompt: |
+        Based on this brand voice analysis:
+        
+        {{content}}
+        
+        Create a comprehensive brand messaging framework for {{brand_name}}.
+        
+        Include:
+        
+        **Brand Voice Guidelines:**
+        - Voice characteristics and personality
+        - Tone guidelines for different scenarios
+        - Do's and Don'ts with examples
+        
+        **Key Messages:**
+        - Primary value proposition
+        - Supporting messages by audience
+        - Elevator pitch versions (30sec, 1min, 2min)
+        
+        **Content Examples:**
+        - Sample social media posts
+        - Email subject line examples
+        - Website copy samples
+        - Customer service response examples
+        
+        **Implementation Guide:**
+        - Content review checklist
+        - Training talking points
+        - Brand voice assessment criteria
+        
+        Make it actionable for content creators and marketers.
+    
+    brand_guide_document:
+      type: google_docs
+      action: create
+      title: "Brand Voice Guide: {{brand_name}}"
+      content_key: content

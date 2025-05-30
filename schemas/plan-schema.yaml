@@ -1,0 +1,247 @@
+# Multi-Agent Plan Schema v1.0
+# Standardized format for communication between Claude.ai, Claude Code CLI, and Bruno
+
+type: object
+required:
+  - id
+  - userRequest
+  - steps
+  - metadata
+
+properties:
+  id:
+    type: string
+    description: "Unique identifier for this execution plan"
+    pattern: "^plan-[0-9]{13}-[a-z0-9]{9}$"
+    example: "plan-1640995200000-abc123def"
+
+  userRequest:
+    type: string
+    description: "Original user request that triggered this plan"
+    minLength: 1
+    maxLength: 2000
+
+  steps:
+    type: array
+    description: "Ordered list of execution steps"
+    minItems: 1
+    maxItems: 20
+    items:
+      type: object
+      required:
+        - id
+        - type
+        - description
+        - agent
+      properties:
+        id:
+          type: string
+          description: "Unique step identifier"
+          pattern: "^step-[0-9]+$"
+        
+        type:
+          type: string
+          description: "Type of operation this step performs"
+          enum:
+            - "analysis"
+            - "planning"
+            - "implementation"
+            - "testing"
+            - "documentation"
+            - "file-operation"
+            - "code-review"
+            - "deployment"
+            - "validation"
+        
+        description:
+          type: string
+          description: "Human-readable description of what this step accomplishes"
+          minLength: 10
+          maxLength: 500
+        
+        agent:
+          type: string
+          description: "Which agent should execute this step"
+          enum:
+            - "claude-ai"
+            - "claude-code"
+            - "bruno"
+        
+        inputs:
+          type: array
+          description: "Dependencies and inputs required for this step"
+          items:
+            type: string
+          examples:
+            - ["user-request", "codebase-analysis"]
+            - ["requirements-document", "test-data"]
+        
+        outputs:
+          type: array
+          description: "Artifacts and results produced by this step"
+          items:
+            type: string
+          examples:
+            - ["implementation-code", "test-results"]
+            - ["documentation", "deployment-config"]
+        
+        estimatedDuration:
+          type: string
+          description: "Estimated time to complete this step"
+          pattern: "^[0-9]+-[0-9]+ (seconds|minutes|hours)$"
+          examples:
+            - "30-60 seconds"
+            - "2-5 minutes"
+            - "10-15 minutes"
+        
+        parameters:
+          type: object
+          description: "Step-specific configuration parameters"
+          additionalProperties: true
+        
+        retryConfig:
+          type: object
+          description: "Retry configuration for this step"
+          properties:
+            maxRetries:
+              type: integer
+              minimum: 0
+              maximum: 5
+              default: 3
+            backoffMultiplier:
+              type: number
+              minimum: 1.0
+              maximum: 5.0
+              default: 2.0
+        
+        conditions:
+          type: object
+          description: "Conditions for step execution"
+          properties:
+            skipIf:
+              type: string
+              description: "Condition to skip this step"
+            requiredIf:
+              type: string
+              description: "Condition required for this step"
+
+  metadata:
+    type: object
+    description: "Plan metadata and configuration"
+    required:
+      - estimatedDuration
+      - complexity
+    properties:
+      estimatedDuration:
+        type: string
+        description: "Total estimated duration for plan execution"
+        pattern: "^[0-9]+-[0-9]+ (minutes|hours)$"
+        examples:
+          - "5-10 minutes"
+          - "1-2 hours"
+      
+      complexity:
+        type: string
+        description: "Overall complexity level of the plan"
+        enum:
+          - "low"
+          - "medium"
+          - "high"
+          - "critical"
+      
+      requiredTools:
+        type: array
+        description: "Tools and capabilities required for execution"
+        items:
+          type: string
+          enum:
+            - "file-system"
+            - "code-analysis"
+            - "web-access"
+            - "database"
+            - "api-calls"
+            - "shell-commands"
+            - "git-operations"
+            - "package-management"
+        
+      tags:
+        type: array
+        description: "Categorization tags for this plan"
+        items:
+          type: string
+        examples:
+          - ["frontend", "react", "debugging"]
+          - ["backend", "api", "database"]
+      
+      priority:
+        type: string
+        description: "Execution priority level"
+        enum:
+          - "low"
+          - "normal"
+          - "high"
+          - "urgent"
+        default: "normal"
+      
+      timeout:
+        type: integer
+        description: "Maximum execution time in seconds"
+        minimum: 60
+        maximum: 3600
+        default: 300
+      
+      createdAt:
+        type: string
+        format: date-time
+        description: "When this plan was created"
+      
+      createdBy:
+        type: string
+        description: "Agent that created this plan"
+        enum:
+          - "claude-ai"
+          - "claude-code"
+          - "user"
+
+# Example Plan:
+examples:
+  - id: "plan-1640995200000-abc123def"
+    userRequest: "Fix the login bug in the authentication module"
+    steps:
+      - id: "step-1"
+        type: "analysis"
+        description: "Analyze the authentication module code to identify the login bug"
+        agent: "claude-code"
+        inputs: ["user-request", "source-code"]
+        outputs: ["bug-analysis", "affected-files"]
+        estimatedDuration: "2-3 minutes"
+        parameters:
+          focusAreas: ["login-flow", "error-handling"]
+      
+      - id: "step-2"
+        type: "implementation"
+        description: "Implement fix for the identified login bug"
+        agent: "bruno"
+        inputs: ["bug-analysis", "affected-files"]
+        outputs: ["fixed-code", "test-cases"]
+        estimatedDuration: "5-8 minutes"
+        parameters:
+          testRequired: true
+      
+      - id: "step-3"
+        type: "testing"
+        description: "Run tests to verify the bug fix works correctly"
+        agent: "bruno"
+        inputs: ["fixed-code", "test-cases"]
+        outputs: ["test-results", "validation-report"]
+        estimatedDuration: "1-2 minutes"
+    
+    metadata:
+      estimatedDuration: "8-13 minutes"
+      complexity: "medium"
+      requiredTools: ["file-system", "code-analysis"]
+      tags: ["bug-fix", "authentication", "testing"]
+      priority: "high"
+      timeout: 900
+      createdAt: "2024-01-01T12:00:00Z"
+      createdBy: "claude-ai"

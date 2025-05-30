@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Claude MCP Bridge Wrapper Script
+# Properly loads environment variables and runs the CLI
+
+export GOOGLE_APPLICATION_CREDENTIALS="/Users/tbwa/Downloads/claude-mcp-bridge-1bcc17dc2ef4.json"
+export ASANA_ACCESS_TOKEN="2/1210423627769647/1210427672006159:dc82e06c3f2251ef7e98941e444730ea"
+
+# Load additional env vars from .clodrep.env if they exist (safely)
+if [ -f "/Users/tbwa/.bruno/clodrep/.clodrep.env" ]; then
+    while IFS= read -r line; do
+        if [[ ! $line =~ ^# && $line =~ = ]]; then
+            export "$line"
+        fi
+    done < "/Users/tbwa/.bruno/clodrep/.clodrep.env"
+fi
+
+# Get the directory of this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Run the CLI with all arguments passed through
+node "$SCRIPT_DIR/src/cli.js" "$@"

@@ -1,0 +1,109 @@
+# Bruno Local-Only Examples
+# These tasks should be executed locally by Bruno without delegation
+
+# 1. Simple file operations
+- id: "create-backup"
+  task: "Create backup of important files"
+  command: "tar -czf backup-$(date +%Y%m%d).tar.gz src/ config/"
+  verify_type: "file_exists"
+  file_path: "backup-$(date +%Y%m%d).tar.gz"
+  fail_message: "❌ Backup file not created"
+
+# 2. Local build processes
+- id: "npm-build"
+  task: "Build React application"
+  command: "npm run build"
+  verify: "test -d build && test -f build/index.html"
+  success_condition: "0"
+  comparison_type: "numeric"
+  fail_message: "❌ Build directory or index.html not found"
+
+# 3. Database operations (local)
+- id: "migrate-database"
+  task: "Run database migrations"
+  command: "npm run migrate"
+  verify: "npm run migrate:status | grep 'up'"
+  success_condition: "up"
+  comparison_type: "contains"
+  fail_message: "❌ Database migrations not completed"
+
+# 4. Test execution
+- id: "run-tests"
+  task: "Execute test suite"
+  command: "npm test"
+  verify_type: "log_contains"
+  log_file: "test-results.log"
+  expect: "All tests passed"
+  fail_message: "❌ Tests failed"
+
+# 5. Code formatting
+- id: "format-code"
+  task: "Format codebase with Prettier"
+  command: "npx prettier --write src/"
+  verify: "npx prettier --check src/"
+  success_condition: "0"
+  comparison_type: "numeric"
+  fail_message: "❌ Code formatting issues remain"
+
+# 6. Git operations
+- id: "git-status-check"
+  task: "Check git working directory"
+  command: "git status"
+  verify_type: "git_status"
+  expect: "clean"
+  fail_message: "❌ Git working directory has uncommitted changes"
+
+# 7. Environment setup
+- id: "install-dependencies"
+  task: "Install Node.js dependencies"
+  command: "npm install"
+  verify: "test -d node_modules && test -f package-lock.json"
+  success_condition: "0"
+  comparison_type: "numeric"
+  fail_message: "❌ Dependencies not installed properly"
+
+# 8. Log analysis (local files)
+- id: "analyze-logs"
+  task: "Count error entries in log file"
+  command: "grep -c ERROR application.log"
+  verify: "test $(grep -c ERROR application.log) -lt 10"
+  success_condition: "0"
+  comparison_type: "numeric"
+  fail_message: "❌ Too many errors found in logs"
+
+# 9. File cleanup
+- id: "cleanup-temp"
+  task: "Clean temporary files"
+  command: "rm -rf tmp/* .cache/* *.tmp"
+  verify: "test ! -f *.tmp && test $(ls tmp/ | wc -l) -eq 0"
+  success_condition: "0"
+  comparison_type: "numeric"
+  fail_message: "❌ Temporary files not cleaned up"
+
+# 10. Directory structure creation
+- id: "create-project-structure"
+  task: "Create project directory structure"
+  command: "mkdir -p src/{components,utils,services} tests/{unit,integration} docs"
+  verify: "test -d src/components && test -d tests/unit && test -d docs"
+  success_condition: "0"
+  comparison_type: "numeric"
+  fail_message: "❌ Project structure not created correctly"
+
+# 11. Local server operations
+- id: "start-dev-server"
+  task: "Start development server"
+  command: "npm run dev &"
+  verify: "curl -s http://localhost:3000 | grep -q 'title'"
+  success_condition: "0" 
+  comparison_type: "numeric"
+  fail_message: "❌ Development server not responding"
+  stop_on_failure: false  # Don't stop other tasks if this fails
+
+# 12. Docker operations (local)
+- id: "docker-build"
+  task: "Build Docker image"
+  command: "docker build -t myapp:latest ."
+  verify: "docker images | grep myapp | grep latest"
+  success_condition: "myapp"
+  comparison_type: "contains"
+  fail_message: "❌ Docker image not built successfully"

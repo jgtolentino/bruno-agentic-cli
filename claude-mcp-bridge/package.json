@@ -1,0 +1,52 @@
+{
+  "name": "claude-mcp-bridge",
+  "version": "1.0.0",
+  "description": "Custom middleware bridge for Claude Code CLI integration with Asana, Google Docs, and other services",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "cli": "node src/cli.js",
+    "install-bridge": "node scripts/install.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "helmet": "^7.0.0",
+    "winston": "^3.10.0",
+    "asana": "^3.0.4",
+    "googleapis": "^126.0.1",
+    "google-auth-library": "^9.0.0",
+    "@supabase/supabase-js": "^2.38.0",
+    "@octokit/rest": "^20.0.2",
+    "commander": "^11.0.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.6",
+    "ws": "^8.14.2",
+    "bull": "^4.11.3",
+    "redis": "^4.6.8",
+    "dotenv": "^16.3.1",
+    "markdown-it": "^13.0.1",
+    "turndown": "^7.1.2",
+    "yaml": "^2.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.6.4"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "keywords": [
+    "claude",
+    "mcp",
+    "bridge",
+    "middleware",
+    "asana",
+    "google-docs",
+    "automation"
+  ],
+  "author": "TBWA",
+  "license": "MIT"
+}

@@ -1,0 +1,78 @@
+flowId: flow-1748640342103-v3vetz0n4
+status: completed
+phases:
+  planning:
+    id: flow-1748640342116-hzvda48d4
+    userRequest: build and test my application
+    steps:
+      - id: step-1
+        type: analysis
+        description: Analyze user request and determine requirements
+        agent: claude-code
+        inputs:
+          - user-request
+        outputs:
+          - requirements-analysis
+      - id: step-2
+        type: implementation
+        description: Implement solution based on requirements
+        agent: bruno
+        inputs:
+          - requirements-analysis
+        outputs:
+          - implementation-result
+    metadata:
+      estimatedDuration: 5-10 minutes
+      complexity: medium
+      requiredTools:
+        - file-system
+        - code-analysis
+  orchestration:
+    planId: flow-1748640342116-hzvda48d4
+    steps:
+      - stepId: step-1
+        status: failed
+        result:
+          success: false
+          output: ''
+          error: |
+            error: unknown option '--task'
+          exitCode: 1
+        timestamp: '2025-05-30T21:25:42.401Z'
+    status: partial
+    timestamp: '2025-05-30T21:25:42.402Z'
+  execution:
+    orchestrationId: flow-1748640342116-hzvda48d4
+    steps:
+      - stepId: step-2
+        status: failed
+        result:
+          success: false
+          output: ''
+          error: >
+            node:internal/modules/esm/resolve:275
+                throw new ERR_MODULE_NOT_FOUND(
+                      ^
+
+            Error [ERR_MODULE_NOT_FOUND]: Cannot find module
+            '/Users/tbwa/.bruno/shell/repl-local.js' imported from
+            /Users/tbwa/.bruno/bin/bruno.js
+                at finalizeResolution (node:internal/modules/esm/resolve:275:11)
+                at moduleResolve (node:internal/modules/esm/resolve:860:10)
+                at defaultResolve (node:internal/modules/esm/resolve:984:11)
+                at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:780:12)
+                at #cachedDefaultResolve (node:internal/modules/esm/loader:704:25)
+                at ModuleLoader.resolve (node:internal/modules/esm/loader:687:38)
+                at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:305:38)
+                at ModuleJob._link (node:internal/modules/esm/module_job:137:49) {
+              code: 'ERR_MODULE_NOT_FOUND',
+              url: 'file:///Users/tbwa/.bruno/shell/repl-local.js'
+            }
+
+
+            Node.js v23.11.0
+          exitCode: 1
+        timestamp: '2025-05-30T21:25:42.436Z'
+    status: partial
+    timestamp: '2025-05-30T21:25:42.436Z'
+timestamp: '2025-05-30T21:25:42.439Z'

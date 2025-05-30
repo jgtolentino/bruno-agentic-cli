@@ -1,0 +1,181 @@
+{
+  "name": "bruno-vscode",
+  "displayName": "Bruno – Claude-Style Local AI",
+  "description": "Local Claude-style dev assistant with DeepSeek + Ollama backend",
+  "version": "3.1.0",
+  "publisher": "insightpulse",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Other",
+    "Snippets"
+  ],
+  "keywords": [
+    "ai",
+    "claude",
+    "local",
+    "ollama",
+    "code-assistant"
+  ],
+  "icon": "media/bruno-icon.png",
+  "activationEvents": [
+    "onCommand:bruno.explainFile",
+    "onCommand:bruno.fixFile",
+    "onCommand:bruno.generateTests",
+    "onCommand:bruno.refactorCode",
+    "onCommand:bruno.askPrompt",
+    "onCommand:bruno.showSessions",
+    "onCommand:bruno.continueSession",
+    "onView:brunoSidebar"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "bruno.explainFile",
+        "title": "🧠 Bruno: Explain Current File",
+        "category": "Bruno"
+      },
+      {
+        "command": "bruno.fixFile",
+        "title": "🛠 Bruno: Fix Current File",
+        "category": "Bruno"
+      },
+      {
+        "command": "bruno.generateTests",
+        "title": "🧪 Bruno: Generate Tests",
+        "category": "Bruno"
+      },
+      {
+        "command": "bruno.refactorCode",
+        "title": "♻️ Bruno: Refactor Selection",
+        "category": "Bruno"
+      },
+      {
+        "command": "bruno.askPrompt",
+        "title": "💬 Bruno: Ask Custom Prompt",
+        "category": "Bruno"
+      },
+      {
+        "command": "bruno.showSessions",
+        "title": "📚 Bruno: Show Sessions",
+        "category": "Bruno"
+      },
+      {
+        "command": "bruno.continueSession",
+        "title": "🔄 Bruno: Continue Last Session",
+        "category": "Bruno"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "bruno.explainFile",
+          "when": "editorTextFocus",
+          "group": "bruno@1"
+        },
+        {
+          "command": "bruno.fixFile",
+          "when": "editorTextFocus",
+          "group": "bruno@2"
+        },
+        {
+          "command": "bruno.generateTests",
+          "when": "editorTextFocus",
+          "group": "bruno@3"
+        },
+        {
+          "command": "bruno.refactorCode",
+          "when": "editorHasSelection",
+          "group": "bruno@4"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "bruno.explainFile",
+          "when": "resourceExtname =~ /\\.(js|ts|jsx|tsx|py|java|go|rs|cpp|c|h)$/",
+          "group": "bruno"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "bruno-sidebar",
+          "title": "Bruno AI",
+          "icon": "media/bruno-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "bruno-sidebar": [
+        {
+          "id": "brunoSidebar",
+          "name": "Bruno Assistant",
+          "type": "webview"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Bruno",
+      "properties": {
+        "bruno.model": {
+          "type": "string",
+          "default": "deepseek-coder:6.7b",
+          "description": "Ollama model to use"
+        },
+        "bruno.ollamaUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:11434",
+          "description": "Ollama API endpoint"
+        },
+        "bruno.contextDepth": {
+          "type": "number",
+          "default": 3,
+          "description": "Number of conversation turns to keep in context"
+        },
+        "bruno.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Bruno notifications"
+        },
+        "bruno.autoSaveSession": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically save conversation sessions"
+        }
+      }
+    },
+    "keybindings": [
+      {
+        "command": "bruno.askPrompt",
+        "key": "ctrl+shift+b",
+        "mac": "cmd+shift+b",
+        "when": "editorTextFocus"
+      }
+    ]
+  },
+  "scripts": {
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "dependencies": {
+    "axios": "^1.7.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^2.19.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/insightpulse/bruno-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/insightpulse/bruno-vscode/issues"
+  },
+  "homepage": "https://github.com/insightpulse/bruno-vscode#readme",
+  "author": "InsightPulse AI",
+  "license": "MIT"
+}

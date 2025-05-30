@@ -1,0 +1,257 @@
+# ClaudeFlow Configuration
+# Defines flows for orchestrating Claude AI → Google Docs pipeline
+
+flows:
+  blog_post_generator:
+    description: "Generate a blog post using Claude AI and save to Google Docs"
+    variables:
+      topic: "The main topic for the blog post"
+      word_count: "Target word count (default: 1000)"
+      style: "Writing style (professional, casual, technical)"
+      audience: "Target audience description"
+    steps:
+      claude_generation:
+        type: claude
+        model: "claude-3-opus-20240229"
+        max_tokens: 4096
+        temperature: 0.7
+        system_prompt: |
+          You are a professional content writer. Create high-quality, engaging blog posts 
+          that are well-structured, informative, and tailored to the specified audience.
+          
+          Always include:
+          - An engaging title and introduction
+          - Clear section headers
+          - Relevant examples and insights
+          - A strong conclusion
+          
+          Format your response in markdown.
+        prompt: |
+          Write a {{word_count}}-word blog post about "{{topic}}" in a {{style}} style.
+          
+          Target audience: {{audience}}
+          
+          Please ensure the content is:
+          - Original and engaging
+          - Well-researched and accurate
+          - Properly structured with clear headings
+          - Optimized for readability
+          
+          Include practical examples and actionable insights where relevant.
+      
+      content_formatting:
+        type: transform
+        transformations:
+          formatted_title:
+            type: template
+            template: "Blog Post: {{topic}} ({{style}} style)"
+          clean_content:
+            type: extract
+            from: content
+      
+      google_docs_creation:
+        type: google_docs
+        action: create
+        title: "{{formatted_title}}"
+        content_key: clean_content
+        folder_id: "{{google_drive_folder_id}}"  # Optional: set in variables
+
+  content_research_and_write:
+    description: "Research a topic and create comprehensive content"
+    variables:
+      research_topic: "Topic to research"
+      content_type: "Type of content (article, report, guide)"
+      depth: "Research depth (basic, intermediate, comprehensive)"
+    steps:
+      research_phase:
+        type: claude
+        model: "claude-3-opus-20240229"
+        max_tokens: 2048
+        temperature: 0.3
+        system_prompt: |
+          You are a thorough researcher. Provide comprehensive, accurate information
+          about the given topic. Focus on current trends, key insights, and reliable sources.
+        prompt: |
+          Research the topic "{{research_topic}}" at a {{depth}} level.
+          
+          Please provide:
+          1. Key concepts and definitions
+          2. Current trends and developments
+          3. Important statistics or data points
+          4. Main challenges or considerations
+          5. Future outlook
+          
+          Format your research findings clearly with bullet points and sections.
+      
+      content_creation:
+        type: claude
+        model: "claude-3-opus-20240229"
+        max_tokens: 4096
+        temperature: 0.7
+        system_prompt: |
+          You are an expert content creator. Use the research provided to create
+          engaging, well-structured content that provides real value to readers.
+        prompt: |
+          Based on this research:
+          
+          {{content}}
+          
+          Create a comprehensive {{content_type}} about "{{research_topic}}".
+          
+          Requirements:
+          - Use the research to support your points
+          - Create an engaging introduction
+          - Organize content with clear headings
+          - Include practical applications
+          - End with actionable takeaways
+          
+          Format in markdown with proper headings and structure.
+      
+      document_creation:
+        type: google_docs
+        action: create
+        title: "{{content_type}}: {{research_topic}}"
+        content_key: content
+
+  meeting_summary_flow:
+    description: "Process meeting notes and create formatted summary"
+    variables:
+      meeting_notes: "Raw meeting notes or transcript"
+      meeting_title: "Title of the meeting"
+      attendees: "List of meeting attendees"
+      date: "Meeting date"
+    steps:
+      summarization:
+        type: claude
+        model: "claude-3-opus-20240229"
+        max_tokens: 2048
+        temperature: 0.2
+        system_prompt: |
+          You are an executive assistant skilled at creating professional meeting summaries.
+          Extract key information, decisions, and action items clearly and concisely.
+        prompt: |
+          Please create a professional meeting summary from these notes:
+          
+          {{meeting_notes}}
+          
+          Format the summary with these sections:
+          
+          # Meeting Summary: {{meeting_title}}
+          
+          **Date:** {{date}}
+          **Attendees:** {{attendees}}
+          
+          ## Key Discussion Points
+          [Extract main topics discussed]
+          
+          ## Decisions Made
+          [List all decisions with clear outcomes]
+          
+          ## Action Items
+          [List action items with owners and deadlines if mentioned]
+          
+          ## Next Steps
+          [Outline follow-up actions and next meeting if applicable]
+          
+          Keep the summary concise but comprehensive.
+      
+      document_creation:
+        type: google_docs
+        action: create
+        title: "Meeting Summary - {{meeting_title}} ({{date}})"
+        content_key: content
+
+  proposal_generator:
+    description: "Generate business proposals with Claude and format in Google Docs"
+    variables:
+      client_name: "Client or company name"
+      project_description: "Brief project description"
+      budget_range: "Estimated budget range"
+      timeline: "Project timeline"
+      services: "List of services to be provided"
+    steps:
+      proposal_creation:
+        type: claude
+        model: "claude-3-opus-20240229"
+        max_tokens: 4096
+        temperature: 0.6
+        system_prompt: |
+          You are a business development expert who creates compelling, professional
+          proposals that win clients. Focus on value proposition and clear deliverables.
+        prompt: |
+          Create a professional business proposal for {{client_name}}.
+          
+          Project: {{project_description}}
+          Services: {{services}}
+          Timeline: {{timeline}}
+          Budget Range: {{budget_range}}
+          
+          Structure the proposal with:
+          
+          # Business Proposal for {{client_name}}
+          
+          ## Executive Summary
+          [Brief overview of the project and value proposition]
+          
+          ## Project Overview
+          [Detailed description of the project and objectives]
+          
+          ## Proposed Solution
+          [How you will address their needs]
+          
+          ## Services Included
+          [Detailed breakdown of services]
+          
+          ## Timeline & Milestones
+          [Project phases and key deliverables]
+          
+          ## Investment
+          [Pricing structure and payment terms]
+          
+          ## Why Choose Us
+          [Your unique value proposition]
+          
+          ## Next Steps
+          [Clear call to action]
+          
+          Make it professional, persuasive, and client-focused.
+      
+      document_creation:
+        type: google_docs
+        action: create
+        title: "Proposal - {{client_name}} - {{project_description}}"
+        content_key: content
+
+  template_based_document:
+    description: "Create document from Google Docs template with variable replacement"
+    variables:
+      template_id: "Google Docs template ID"
+      document_title: "Title for new document"
+      replacements: "Dictionary of text replacements"
+    steps:
+      template_processing:
+        type: google_docs
+        action: create_from_template
+        template_id: "{{template_id}}"
+        title: "{{document_title}}"
+        replacements: "{{replacements}}"
+
+# Global configuration
+config:
+  claude:
+    default_model: "claude-3-opus-20240229"
+    max_retries: 3
+    timeout: 120
+  
+  google_docs:
+    default_folder_id: null  # Set default folder ID
+    auto_share: false        # Auto-share created documents
+    share_with: []          # Default email addresses to share with
+  
+  logging:
+    level: "INFO"
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  rate_limiting:
+    claude_requests_per_minute: 60
+    google_api_requests_per_minute: 100

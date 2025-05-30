@@ -1,0 +1,87 @@
+# Test Tasks for Claude Code CLI Secure Executor
+# Safe tasks for testing secret injection and verification
+
+# 1. Simple echo with environment variable
+- id: test-env-injection
+  task: "Test environment variable injection"
+  command: 'echo "Running in {{NODE_ENV}} environment"'
+  verify: 'echo "Running in production environment"'
+  success_condition: "Running in production environment"
+  fail_message: "❌ Environment injection test failed"
+
+# 2. Test secret redaction in logs
+- id: test-secret-redaction
+  task: "Test secret redaction in logging"
+  command: 'echo "API key is {{GITHUB_TOKEN}}" | head -c 20'
+  verify: 'echo "test completed"'
+  success_condition: "test completed"
+  fail_message: "❌ Secret redaction test failed"
+
+# 3. Test curl with placeholder (safe endpoint)
+- id: test-api-placeholder
+  task: "Test API call with token placeholder"
+  command: 'curl -s -H "Authorization: Bearer {{GITHUB_TOKEN}}" "https://api.github.com/user" | jq -r ".login"'
+  verify: 'curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer {{GITHUB_TOKEN}}" "https://api.github.com/user"'
+  success_condition: "200"
+  fail_message: "❌ GitHub API test failed (check GITHUB_TOKEN)"
+
+# 4. Test local file operation (should delegate to Bruno)
+- id: test-bruno-delegation
+  task: "Test delegation to Bruno"
+  agent: executor
+  command: 'echo "Hello from Bruno" > test-file.txt'
+  delegate_to: "bruno"
+  verify: 'cat test-file.txt'
+  success_condition: "Hello from Bruno"
+  fail_message: "❌ Bruno delegation test failed"
+
+# 5. Test dry run mode
+- id: test-dry-run
+  task: "Test command that should not execute in dry run"
+  command: 'echo "This should not execute in dry run mode"'
+  verify: 'echo "dry run verification"'
+  success_condition: "dry run verification"
+  fail_message: "❌ Dry run test failed"
+
+# 6. Test numeric comparison
+- id: test-numeric-comparison
+  task: "Test numeric result comparison"
+  command: 'echo "42"'
+  verify: 'echo "42"'
+  success_condition: "42"
+  comparison_type: "numeric"
+  fail_message: "❌ Numeric comparison test failed"
+
+# 7. Test contains comparison
+- id: test-contains-comparison
+  task: "Test contains result comparison"
+  command: 'echo "The answer is 42 and more text"'
+  verify: 'echo "The answer is 42 and more text"'
+  success_condition: "answer is 42"
+  comparison_type: "contains"
+  fail_message: "❌ Contains comparison test failed"
+
+# 8. Test multiple secret injection
+- id: test-multiple-secrets
+  task: "Test multiple secret injection"
+  command: 'echo "Node: {{NODE_ENV}}, Log: {{LOG_LEVEL}}"'
+  verify: 'echo "Node: production, Log: info"'
+  success_condition: "Node: production, Log: info"
+  fail_message: "❌ Multiple secret injection test failed"
+
+# 9. Test command with timeout
+- id: test-timeout-handling
+  task: "Test command timeout handling"
+  command: 'sleep 1 && echo "completed"'
+  verify: 'echo "completed"'
+  success_condition: "completed"
+  fail_message: "❌ Timeout handling test failed"
+
+# 10. Test error handling
+- id: test-error-handling
+  task: "Test error handling (this should fail gracefully)"
+  command: 'false'  # Command that always fails
+  verify: 'echo "error test"'
+  success_condition: "error test"
+  fail_message: "❌ This failure is expected for error handling test"
+  stop_on_failure: false  # Don't stop other tests

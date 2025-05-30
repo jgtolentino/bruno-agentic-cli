@@ -1,0 +1,16 @@
+.vscode/**
+.vscode-test/**
+node_modules/**
+src/**
+.gitignore
+.eslintrc.json
+*.vsix
+test/**
+.github/**
+**/*.map
+**/.DS_Store
+**/._*
+**/*.log
+**/npm-debug.log*
+**/yarn-error.log*
+**/yarn-debug.log*

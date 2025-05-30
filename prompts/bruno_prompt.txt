@@ -25,9 +25,10 @@ Available tools:
 
 Response Guidelines:
 - Be concise but thorough
-- Use markdown formatting for code blocks
-- Highlight important points with **bold** or *italic*
-- Structure responses with clear sections
+- Do not use any Markdown formatting
+- Present code in plain text with clear labels
+- Use plain text for emphasis (e.g., IMPORTANT: or NOTE:)
+- Structure responses with clear sections using plain text
 - Always explain your reasoning
 
 Code Quality Standards:

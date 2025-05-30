@@ -1,0 +1,99 @@
+# Google Docs Converter Template
+# Converts .md files to professional Google Docs format
+# Requires: GOOGLE_APPLICATION_CREDENTIALS and GOOGLE_DOCS_API_KEY
+
+- id: md-to-gdocs
+  task: "Convert markdown file to Google Docs"
+  agent: secure_executor
+  command: |
+    python3 -c "
+    import os
+    import markdown
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+    
+    # Load markdown content
+    with open('{{INPUT_FILE}}', 'r', encoding='utf-8') as f:
+        md_content = f.read()
+    
+    # Convert markdown to HTML
+    html = markdown.markdown(md_content, extensions=['tables', 'fenced_code', 'toc'])
+    
+    # Initialize Google Docs API
+    creds = Credentials.from_service_account_file('{{GOOGLE_APPLICATION_CREDENTIALS}}')
+    service = build('docs', 'v1', credentials=creds)
+    
+    # Create new document
+    doc = service.documents().create(body={'title': '{{DOC_TITLE}}'}).execute()
+    doc_id = doc['documentId']
+    
+    # Insert content
+    requests = [
+        {
+            'insertText': {
+                'location': {'index': 1},
+                'text': md_content
+            }
+        }
+    ]
+    
+    service.documents().batchUpdate(
+        documentId=doc_id,
+        body={'requests': requests}
+    ).execute()
+    
+    print(f'Document created: https://docs.google.com/document/d/{doc_id}')
+    "
+  verify: 'echo "Document conversion completed"'
+  success_condition: "Document created: https://docs.google.com"
+  fail_message: "❌ Google Docs conversion failed"
+  env_vars:
+    - GOOGLE_APPLICATION_CREDENTIALS
+    - GOOGLE_DOCS_API_KEY
+
+- id: format-gdocs
+  task: "Apply professional formatting to Google Doc"
+  agent: secure_executor
+  command: |
+    python3 -c "
+    from google.oauth2.service_account import Credentials
+    from googleapiclient.discovery import build
+    
+    creds = Credentials.from_service_account_file('{{GOOGLE_APPLICATION_CREDENTIALS}}')
+    service = build('docs', 'v1', credentials=creds)
+    
+    # Professional formatting requests
+    formatting_requests = [
+        {
+            'updateTextStyle': {
+                'range': {'startIndex': 1, 'endIndex': -1},
+                'textStyle': {
+                    'fontSize': {'magnitude': 11, 'unit': 'PT'},
+                    'fontFamily': 'Arial'
+                },
+                'fields': 'fontSize,fontFamily'
+            }
+        },
+        {
+            'updateParagraphStyle': {
+                'range': {'startIndex': 1, 'endIndex': -1},
+                'paragraphStyle': {
+                    'lineSpacing': 115,
+                    'spaceAbove': {'magnitude': 6, 'unit': 'PT'},
+                    'spaceBelow': {'magnitude': 6, 'unit': 'PT'}
+                },
+                'fields': 'lineSpacing,spaceAbove,spaceBelow'
+            }
+        }
+    ]
+    
+    service.documents().batchUpdate(
+        documentId='{{DOC_ID}}',
+        body={'requests': formatting_requests}
+    ).execute()
+    
+    print('Professional formatting applied')
+    "
+  verify: 'echo "Formatting applied successfully"'
+  success_condition: "Professional formatting applied"
+  fail_message: "❌ Document formatting failed"

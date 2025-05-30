@@ -1,0 +1,118 @@
+# Bruno Delegation Examples
+# These tasks demonstrate when Bruno should delegate to Claude Code CLI
+
+# 1. External API call requiring authentication
+- id: "notion-page-creation"
+  task: "Create daily standup notes in Notion"
+  command: |
+    curl -X POST https://api.notion.com/v1/pages \
+      -H "Authorization: Bearer $NOTION_TOKEN" \
+      -H "Content-Type: application/json" \
+      -H "Notion-Version: 2022-06-28" \
+      -d '{
+        "parent": { "database_id": "abc123" },
+        "properties": {
+          "Name": {
+            "title": [{"text": {"content": "Daily Standup - ${DATE}"}}]
+          }
+        }
+      }'
+  verify_type: "http_status"
+  url: "https://api.notion.com/v1/databases/abc123"
+  expect: "200"
+  fail_message: "❌ Failed to create Notion page"
+
+# 2. Dynamic JSON payload that needs LLM generation
+- id: "generate-api-payload" 
+  task: "Generate dynamic Slack notification payload"
+  command: "echo 'Need to generate JSON payload based on deployment status'"
+  description: "Create a Slack message with deployment summary, commit info, and status"
+  requires_delegation: true
+  delegate_to: "claude-code"
+  reason: "Requires dynamic JSON construction based on multiple data sources"
+
+# 3. Complex authentication flow
+- id: "oauth-flow"
+  task: "Authenticate with Google Calendar API"
+  command: |
+    curl -X POST https://oauth2.googleapis.com/token \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -d "client_id=$GOOGLE_CLIENT_ID&client_secret=$GOOGLE_CLIENT_SECRET&refresh_token=$REFRESH_TOKEN&grant_type=refresh_token"
+  verify: "curl -H 'Authorization: Bearer $ACCESS_TOKEN' https://www.googleapis.com/calendar/v3/calendars/primary"
+  success_condition: "200"
+  fail_message: "❌ OAuth flow failed"
+
+# 4. Third-party integration requiring retry logic
+- id: "zapier-webhook"
+  task: "Trigger Zapier webhook with retry logic"
+  command: "curl -X POST https://hooks.zapier.com/hooks/catch/123456/abc123/ -d '{\"event\": \"deployment\"}'"
+  description: "Send deployment notification with exponential backoff"
+  requires_delegation: true
+  delegate_to: "claude-code"
+  reason: "Requires retry logic and error handling for webhook"
+
+# 5. Multi-step API workflow
+- id: "jira-ticket-workflow"
+  task: "Create JIRA ticket and assign to team"
+  command: |
+    # Step 1: Create ticket
+    TICKET_ID=$(curl -X POST https://yourorg.atlassian.net/rest/api/3/issue \
+      -H "Authorization: Basic $JIRA_AUTH" \
+      -H "Content-Type: application/json" \
+      -d '{"fields": {"project": {"key": "DEV"}, "summary": "Deployment completed"}}' | jq -r '.key')
+    
+    # Step 2: Assign ticket
+    curl -X PUT https://yourorg.atlassian.net/rest/api/3/issue/$TICKET_ID/assignee \
+      -H "Authorization: Basic $JIRA_AUTH" \
+      -H "Content-Type: application/json" \
+      -d '{"accountId": "user123"}'
+  verify_type: "output_match"
+  command: "echo $TICKET_ID"
+  expect: "DEV-"
+  comparison_type: "contains"
+
+# 6. Local task that Bruno CAN execute
+- id: "local-build"
+  task: "Build Node.js project locally"
+  command: "npm run build"
+  verify_type: "log_contains"
+  log_file: "build.log"
+  expect: "Build completed successfully"
+  fail_message: "❌ Build failed"
+
+# 7. Simple file operation (Bruno can handle)
+- id: "backup-config"
+  task: "Backup configuration files"
+  command: "cp config.json config.json.backup"
+  verify_type: "file_exists"
+  file_path: "config.json.backup"
+  fail_message: "❌ Backup file not created"
+
+# 8. Git operations (Bruno can handle)
+- id: "git-commit"
+  task: "Commit changes and push"
+  command: "git add . && git commit -m 'Deploy: $(date)' && git push origin main"
+  verify_type: "git_status"
+  expect: "clean"
+  fail_message: "❌ Git push failed or working directory not clean"
+
+# 9. Complex API response processing
+- id: "process-api-response"
+  task: "Process GitHub API response and create summary"
+  command: |
+    curl -H "Authorization: token $GITHUB_TOKEN" \
+      https://api.github.com/repos/owner/repo/pulls | \
+      jq '.[] | select(.state == "open")'
+  description: "Analyze open PRs and generate summary with LLM"
+  requires_delegation: true
+  delegate_to: "claude-code"
+  reason: "Requires LLM processing of API response data"
+
+# 10. Email/notification with dynamic content
+- id: "send-deployment-email"
+  task: "Send deployment notification email"
+  command: "echo 'Need to compose and send email via SendGrid'"
+  description: "Generate deployment summary email with status, metrics, and next steps"
+  requires_delegation: true
+  delegate_to: "claude-code"
+  reason: "Requires dynamic email composition and SendGrid API integration"

@@ -1,0 +1,160 @@
+Bruno E2E Test Results - Sat 31 May 2025 04:34:55 PST
+======================================
+
+Test: NPM Install Check
+Command: cd .. && npm list --depth=0 | grep -E '(axios|chalk|fs-extra|js-yaml)'
+Result: PASSED
+
+---
+
+Test: Bruno Binary Exists
+Command: test -f ../bin/bruno.js && echo 'Binary exists'
+Result: PASSED
+
+---
+
+Test: Bruno Executable
+Command: test -x ../bin/bruno.js && echo 'Binary is executable'
+Result: PASSED
+
+---
+
+Test: Bruno Version
+Command: node ../bin/bruno.js --version
+Result: PASSED
+
+---
+
+Test: Bruno Help
+Command: node ../bin/bruno.js --help
+Result: FAILED - Expected pattern not found
+Output: 
+Bruno 3.0 - Advanced Local-First AI CLI
+
+✓ 100% Private - No data leaves your machine
+✓ 100% Offline - Works without internet  
+✓ 100% Open - No API keys required
+🤖 Advanced - Patterns from Cursor, Windsurf, Bolt & Manus
+
+Interaction Modes:
+  bruno                    Start interactive REPL
+  bruno -p "prompt"        Print response and exit
+  bruno -c                 Continue last conversation
+  bruno -r [sessionId]     Resume specific session
+  
+Universal Commands:
+  bruno "<request>"        Process any request with AI routing
+  bruno plan "<task>"      Generate comprehensive task plan
+  
+Session Management:
+  bruno -c                 Continue most recent conversation
+  bruno -r                 Resume interactively selected session
+  bruno -r session_123     Resume specific session by ID
+  
+Output Formats:
+  bruno -p "query" --output-format text      # Default text output
+  bruno -p "query" --output-format json      # JSON response
+  bruno -p "query" --output-format stream-json # Streaming JSON
+
+Code Intelligence:
+  bruno fix <file>         Fix code issues (Cursor-style)
+  bruno explain <file>     Explain code semantically
+  bruno search "<query>"   Semantic code search
+  bruno refactor <file>    Holistic refactoring
+
+Options:
+  -h, --help              Show help
+  -v, --version           Show version
+  -p, --print             Print response and exit
+  -c, --continue          Continue last conversation
+  -r, --resume [id]       Resume conversation
+  -d, --debug             Enable debug mode
+  --model <model>         Set local model
+  --output-format <fmt>   Output format (text, json, stream-json)
+  --patterns <p1,p2>      Use specific patterns
+  --verbose               Show detailed execution
+
+Claude Code CLI Compatible:
+  bruno -p "how to setup react"             # One-shot mode
+  bruno -c                                  # Continue conversation
+  bruno -r session_abc123                   # Resume specific session
+  cat file.log | bruno -p "analyze this"   # Piped input (coming soon)
+
+Prerequisites:
+  1. Install Ollama: https://ollama.ai
+  2. Pull model: ollama pull deepseek-coder:6.7b
+  3. Start server: ollama serve
+    
+
+---
+
+Test: Local Mode Active
+Command: echo 'test' | timeout 5 node ../bin/bruno.js -p 'hello' 2>&1 | head -20
+Result: FAILED - Expected pattern not found
+Output: ./bruno_e2e_test.sh: line 39: timeout: command not found
+
+---
+
+Test: Explain Command
+Command: node ../bin/bruno.js -p 'explain what the add function does in test_math.js' | head -50
+Result: PASSED
+
+---
+
+Test: Fix Command Pattern
+Command: node ../bin/bruno.js -p 'fix the syntax errors in test_broken.js' | head -50
+Result: PASSED
+
+---
+
+Test: General AI Question
+Command: node ../bin/bruno.js -p 'what is a closure in JavaScript' | head -50
+Result: PASSED
+
+---
+
+Test: File Write Test
+Command: echo 'console.log("Hello from Bruno");' > test_output.js && test -f test_output.js && echo 'File created successfully'
+Result: PASSED
+
+---
+
+Test: Safe Shell Command - Echo
+Command: node ../bin/bruno.js -p 'run shell command: echo Hello World' 2>&1 | grep -E '(Hello World|echo|shell)'
+Result: PASSED
+
+---
+
+Test: Safe Shell Command - List
+Command: node ../bin/bruno.js -p 'list files in current directory' 2>&1 | grep -E '(list|files|directory)'
+Result: PASSED
+
+---
+
+Test: No External API Calls
+Command: grep -r 'api.openai.com\|api.anthropic.com' ../core ../bin ../shell 2>/dev/null || echo 'No external APIs found'
+Result: PASSED
+
+---
+
+Test: Ollama Local Only
+Command: grep -r 'ollama_url' ../config 2>/dev/null | grep -E '127.0.0.1|localhost' || echo 'Local only'
+Result: PASSED
+
+---
+
+Test: Invalid Command Handling
+Command: node ../bin/bruno.js -p 'asdflkjasdflkj random gibberish' 2>&1 | grep -E '(help|explanation|understand)'
+Result: PASSED
+
+---
+
+
+Summary
+=======
+Total Tests: 15
+Passed: 13
+Failed: 2
+Success Rate: 86%
+
+Result: SOME TESTS FAILED ❌
