@@ -1,0 +1,37 @@
+{
+  "name": "bruno-orchestration-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for Bruno orchestration architecture",
+  "main": "run-all-tests.js",
+  "scripts": {
+    "test": "node run-all-tests.js",
+    "test:mcp": "node test-mcp-bridge.js",
+    "test:bruno": "node test-bruno-executor.js",
+    "test:gdocs": "node test-google-docs-integration.js",
+    "test:asana": "node test-asana-integration.js",
+    "test:report": "node run-all-tests.js && open reports/latest.html",
+    "test:ci": "node run-all-tests.js --ci",
+    "test:debug": "DEBUG=bruno:* node run-all-tests.js"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "googleapis": "^118.0.0",
+    "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "jest": "^29.5.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "bruno",
+    "orchestration",
+    "claude",
+    "mcp",
+    "testing",
+    "integration"
+  ],
+  "author": "Bruno Orchestration Team",
+  "license": "MIT"
+}

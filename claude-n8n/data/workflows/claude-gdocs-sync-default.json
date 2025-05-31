@@ -1,0 +1,74 @@
+{
+  "id": "claude-gdocs-sync-default",
+  "name": "Claude ↔ Google Docs Sync",
+  "description": "Default workflow for syncing Claude output with Google Docs",
+  "active": true,
+  "nodes": [
+    {
+      "id": "claude-watcher",
+      "name": "Watch Claude Output",
+      "type": "claude",
+      "position": [
+        100,
+        100
+      ],
+      "parameters": {
+        "operation": "watch-output",
+        "claudeSyncDir": "~/claude/sync",
+        "timeout": 30000
+      }
+    },
+    {
+      "id": "process-content",
+      "name": "Process Content",
+      "type": "function",
+      "position": [
+        300,
+        100
+      ],
+      "parameters": {
+        "functionCode": "\n              // Process Claude output for Google Docs\n              const input = $input.first();\n              return {\n                content: input.content,\n                documentId: input.metadata.documentId || process.env.CLAUDE_DEFAULT_DOC_ID,\n                operation: input.metadata.operation || 'append',\n                title: input.metadata.title || 'Claude Output ' + new Date().toLocaleString()\n              };\n            "
+      }
+    },
+    {
+      "id": "update-gdoc",
+      "name": "Update Google Doc",
+      "type": "googleDocs",
+      "position": [
+        500,
+        100
+      ],
+      "parameters": {
+        "operation": "update"
+      }
+    }
+  ],
+  "connections": [
+    {
+      "source": "claude-watcher",
+      "sourceOutput": "main",
+      "target": "process-content",
+      "targetInput": "main"
+    },
+    {
+      "source": "process-content",
+      "sourceOutput": "main",
+      "target": "update-gdoc",
+      "targetInput": "main"
+    }
+  ],
+  "settings": {
+    "timezone": "America/New_York",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true
+  },
+  "tags": [
+    "claude",
+    "google-docs",
+    "sync"
+  ],
+  "createdAt": "2025-05-31T01:01:58.617Z",
+  "updatedAt": "2025-05-31T01:01:58.617Z",
+  "version": 1
+}

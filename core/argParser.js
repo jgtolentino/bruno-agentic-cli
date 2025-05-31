@@ -4,7 +4,9 @@ export function parseArgs(argv = process.argv.slice(2)) {
     file: null,
     options: {},
     _: [],  // Array for positional arguments
-    mode: 'interactive'  // Default mode
+    mode: 'interactive',  // Default mode
+    isPiped: !process.stdin.isTTY,  // Detect piped input
+    pipeContent: null
   };
 
   let i = 0;
@@ -82,7 +84,9 @@ export function parseArgs(argv = process.argv.slice(2)) {
   }
 
   // Handle special modes and prompt extraction
-  if (args.options.print && args._.length > 0) {
+  if (args.isPiped) {
+    args.mode = 'pipe';
+  } else if (args.options.print && args._.length > 0) {
     args.mode = 'print';
     args.prompt = args._.join(' ');
   } else if (args._.length > 0 && !args.options.continue && !args.options.resume) {
@@ -102,6 +106,12 @@ export function parseArgs(argv = process.argv.slice(2)) {
   args.patterns = args.options.patterns ? args.options.patterns.split(',') : [];
   args.verbose = args.options.verbose || false;
   args.plan = args.options.plan || false;
+  
+  // Claude Code CLI style options
+  args.claude = args.options.claude || false;
+  if (args.claude) {
+    args.mode = 'claude';
+  }
 
   return args;
 }

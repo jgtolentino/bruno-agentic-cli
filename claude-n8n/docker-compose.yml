@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  claude-n8n:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: claude-n8n-orchestrator
+    ports:
+      - "5678:5678"
+    environment:
+      - NODE_ENV=production
+      - PORT=5678
+      - LOG_LEVEL=info
+      - GOOGLE_CREDENTIALS_PATH=/app/credentials/google-credentials.json
+      - REDIS_URL=redis://redis:6379
+      - N8N_DATA_DIR=/app/data
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY:-your-encryption-key-here}
+    volumes:
+      - claude_n8n_data:/app/data
+      - claude_sync:/home/claude/sync
+      - ./credentials:/app/credentials:ro
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - claude-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: claude-n8n-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - claude-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: claude-n8n-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - claude-n8n
+    networks:
+      - claude-network
+    restart: unless-stopped
+
+volumes:
+  claude_n8n_data:
+    driver: local
+  claude_sync:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  claude-network:
+    driver: bridge

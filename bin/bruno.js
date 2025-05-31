@@ -1,9 +1,18 @@
 #!/usr/bin/env node
 import { startRepl } from '../shell/repl-local.js';
+import { ClaudeStyleRepl } from '../shell/claudeStyleRepl.js';
 import { parseArgs } from '../core/argParser.js';
 import { UniversalRouter } from '../core/universalRouter.js';
 import { KnowledgeBase } from '../core/knowledgeBase.js';
 import { SessionManager } from '../core/sessionManager.js';
+import { OllamaClient } from '../core/ollamaClient.js';
+import { handlePipedInput } from '../core/pipedInputHandler.js';
+import { createStreamingPipeline } from '../core/streamingOutput.js';
+import { RichTerminalUI } from '../core/richTerminalUI.js';
+import { InteractivePrompts } from '../core/interactivePrompts.js';
+import { ErrorRecoverySystem } from '../core/errorRecovery.js';
+import { ProgressVisualization } from '../core/progressVisualization.js';
+import { MultiModalInputProcessor } from '../core/multiModalInput.js';
 import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
@@ -33,16 +42,16 @@ async function main() {
   const sessionManager = new SessionManager(config);
 
   if (args.version) {
-    console.log(chalk.cyan.bold('Bruno v3.0.0') + chalk.gray(' - Advanced Local-First AI CLI'));
+    console.log(chalk.cyan.bold('Bruno v3.1.0') + chalk.gray(' - Advanced Local-First AI CLI'));
     console.log(chalk.blue('✨ Enhanced UI/UX • 📝 Session Management • 🔄 Hybrid Routing'));
     console.log(chalk.gray('Featuring patterns from Cursor, Windsurf, Bolt, and Manus'));
-    console.log(chalk.green('🎯 Claude Code CLI Compatible • 100% Local • 100% Private'));
+    console.log(chalk.green('🎯 Claude Code CLI Compatible • 📋 Multi-line Input • 100% Local'));
     process.exit(0);
   }
 
   if (args.help) {
     console.log(`
-${chalk.bold.cyan('Bruno 3.0')} - Advanced Local-First AI CLI
+${chalk.bold.cyan('Bruno 3.1')} - Advanced Local-First AI CLI with Claude Code CLI Compatibility
 
 ${chalk.green('✓ 100% Private')} - No data leaves your machine
 ${chalk.green('✓ 100% Offline')} - Works without internet  
@@ -51,6 +60,7 @@ ${chalk.blue('🤖 Advanced')} - Patterns from Cursor, Windsurf, Bolt & Manus
 
 ${chalk.bold('Interaction Modes:')}
   bruno                    Start interactive REPL
+  bruno --claude          Start with Claude Code CLI style
   bruno -p "prompt"        Print response and exit
   bruno -c                 Continue last conversation
   bruno -r [sessionId]     Resume specific session
@@ -82,6 +92,7 @@ ${chalk.bold('Options:')}
   -c, --continue          Continue last conversation
   -r, --resume [id]       Resume conversation
   -d, --debug             Enable debug mode
+  --claude                Enable Claude Code CLI style
   --model <model>         Set local model
   --output-format <fmt>   Output format (text, json, stream-json)
   --patterns <p1,p2>      Use specific patterns
@@ -93,6 +104,22 @@ ${chalk.bold('Claude Code CLI Compatible:')}
   bruno -r session_abc123                   # Resume specific session
   cat file.log | bruno -p "analyze this"   # Piped input (coming soon)
 
+${chalk.bold('Claude-Style Multi-Line Input:')}
+  ${chalk.gray('# Just paste and go - no special modes needed')}
+  echo "Setting up project..."
+  mkdir -p src/components
+  npm init -y
+  
+  ${chalk.gray('# Code creation with heredocs')}
+  cat > server.js << 'EOF'
+  const express = require('express');
+  app.listen(3000);
+  EOF
+  
+  ${chalk.gray('# Natural language + code mixed')}
+  Create a login form component
+  Then test it with: npm test
+
 ${chalk.gray('Prerequisites:')}
   1. Install Ollama: https://ollama.ai
   2. Pull model: ollama pull deepseek-coder:6.7b
@@ -103,6 +130,12 @@ ${chalk.gray('Prerequisites:')}
 
   // Handle different modes based on Claude Code CLI patterns
   switch (args.mode) {
+    case 'claude':
+      // Force Claude-style for explicit mode
+      args.claude = true;
+      await handleInteractiveMode(sessionManager, config, args);
+      break;
+      
     case 'continue':
       await handleContinueMode(sessionManager, config, args);
       break;
@@ -134,8 +167,29 @@ async function handleContinueMode(sessionManager, config, args) {
     return;
   }
   
-  // Start REPL with continued session
-  await startRepl({ ...args, sessionManager, sessionId });
+  // Check if Claude-style mode is requested
+  if (args.claude || config.claude_mode) {
+    const ollama = new OllamaClient(config);
+    const isHealthy = await ollama.checkHealth();
+    
+    if (!isHealthy) {
+      console.log(chalk.red('\n❌ Cannot start Bruno without Ollama'));
+      console.log(chalk.yellow('Please ensure Ollama is running: ollama serve'));
+      process.exit(1);
+    }
+    
+    const claudeRepl = new ClaudeStyleRepl({
+      ollama,
+      sessionManager,
+      sessionId,
+      config
+    });
+    
+    claudeRepl.start();
+  } else {
+    // Start REPL with continued session
+    await startRepl({ ...args, sessionManager, sessionId });
+  }
 }
 
 async function handleResumeMode(sessionManager, config, args) {
@@ -148,8 +202,29 @@ async function handleResumeMode(sessionManager, config, args) {
     return;
   }
   
-  // Start REPL with resumed session
-  await startRepl({ ...args, sessionManager, sessionId });
+  // Check if Claude-style mode is requested
+  if (args.claude || config.claude_mode) {
+    const ollama = new OllamaClient(config);
+    const isHealthy = await ollama.checkHealth();
+    
+    if (!isHealthy) {
+      console.log(chalk.red('\n❌ Cannot start Bruno without Ollama'));
+      console.log(chalk.yellow('Please ensure Ollama is running: ollama serve'));
+      process.exit(1);
+    }
+    
+    const claudeRepl = new ClaudeStyleRepl({
+      ollama,
+      sessionManager,
+      sessionId,
+      config
+    });
+    
+    claudeRepl.start();
+  } else {
+    // Start REPL with resumed session
+    await startRepl({ ...args, sessionManager, sessionId });
+  }
 }
 
 async function handlePrintMode(config, args) {
@@ -273,9 +348,32 @@ async function handleInteractiveMode(sessionManager, config, args) {
     });
   }
   
-  console.log(chalk.cyan('🤖 Starting Bruno 3.0 with advanced patterns...'));
-  // Start interactive REPL
-  await startRepl({ ...args, sessionManager, sessionId });
+  // Check if Claude-style mode is requested
+  if (args.claude || config.claude_mode) {
+    // Initialize Ollama client for Claude-style REPL
+    const ollama = new OllamaClient(config);
+    const isHealthy = await ollama.checkHealth();
+    
+    if (!isHealthy) {
+      console.log(chalk.red('\n❌ Cannot start Bruno without Ollama'));
+      console.log(chalk.yellow('Please ensure Ollama is running: ollama serve'));
+      process.exit(1);
+    }
+    
+    // Create and start Claude-style REPL
+    const claudeRepl = new ClaudeStyleRepl({
+      ollama,
+      sessionManager,
+      sessionId,
+      config
+    });
+    
+    claudeRepl.start();
+  } else {
+    console.log(chalk.cyan('🤖 Starting Bruno 3.0 with advanced patterns...'));
+    // Start standard interactive REPL
+    await startRepl({ ...args, sessionManager, sessionId });
+  }
 }
 
 // Start the application
