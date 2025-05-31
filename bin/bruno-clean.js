@@ -4,7 +4,7 @@ import { handlePipedInput } from '../core/pipedInputHandler.js';
 import { ErrorRecoverySystem } from '../core/errorRecovery.js';
 import { ProgressVisualization } from '../core/progressVisualization.js';
 import { MultiModalInputProcessor } from '../core/multiModalInput.js';
-import { UniversalRouter } from '../core/universalRouter.js';
+import { UniversalRouterClean } from '../core/universalRouterClean.js';
 import { SessionManager } from '../core/sessionManager.js';
 import chalk from 'chalk';
 import fs from 'fs';
@@ -15,6 +15,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   const args = parseArgs();
+
+  // Auto-enable print mode for single prompt (Claude-style)
+  if (args._ && args._.length === 1 && !args.print && !args.continue && !args.resume && !args.help && !args.version) {
+    args.print = true;
+    args.mode = 'print';
+    args.prompt = args._[0];
+  }
 
   // Handle version and help with Claude Code CLI style (minimal)
   if (args.version) {
@@ -115,7 +122,7 @@ async function handlePrintMode(config, args, pipedInput, services) {
   }
 
   try {
-    const router = new UniversalRouter(config);
+    const router = new UniversalRouterClean(config);
     
     // Prepare prompt
     let finalPrompt = args.prompt || '';

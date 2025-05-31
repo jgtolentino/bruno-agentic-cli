@@ -1,26 +1,26 @@
 {
-  "name": "bruno-agentic-cli",
-  "version": "3.1.0",
-  "description": "Claude 4-enhanced local AI CLI with context awareness",
+  "name": "bruno",
+  "version": "1.0.0",
+  "description": "Bruno: Claude-style local AI CLI with clean prompt-to-response flow.",
   "type": "module",
   "bin": {
     "bruno": "./bin/bruno-clean.js",
     "bruno31": "./bin/bruno-v31.js",
     "bruno-enhanced": "./bin/bruno-enhanced.js",
-    "bruno-original": "./bin/bruno.js"
+    "bruno-debug": "./bin/bruno-debug.js"
   },
   "scripts": {
-    "start": "node bin/bruno-clean.js",
-    "start:v31": "node bin/bruno-v31.js",
+    "start": "node bin/bruno.js",
     "start:enhanced": "node bin/bruno-enhanced.js",
-    "start:original": "node bin/bruno.js",
-    "test": "npm run test:clean && npm run test:enhanced",
-    "test:clean": "node bin/bruno-clean.js --version && node bin/bruno-clean.js --help",
+    "start:debug": "node bin/bruno-debug.js",
+    "test": "npm run test:main && npm run test:enhanced",
+    "test:main": "node bin/bruno.js --version && node bin/bruno.js --help",
     "test:enhanced": "node bin/bruno-enhanced.js --version && node bin/bruno-enhanced.js --help",
-    "test:original": "node bin/bruno.js --version && node bin/bruno.js --help",
-    "dev": "node bin/bruno-clean.js",
+    "test:debug": "node bin/bruno-debug.js --version",
+    "dev": "node bin/bruno.js",
     "link:global": "npm link",
-    "unlink:global": "npm unlink -g bruno-agentic-cli"
+    "unlink:global": "npm unlink -g bruno-agentic-cli",
+    "test:claude-parity": "node tests/test-claude-parity.js"
   },
   "keywords": [
     "cli",
@@ -32,7 +32,7 @@
     "developer-tools",
     "ollama"
   ],
-  "author": "JG Tolentino",
+  "author": "Your Name <your@email.com>",
   "license": "MIT",
   "dependencies": {
     "ansi-regex": "^6.0.1",
