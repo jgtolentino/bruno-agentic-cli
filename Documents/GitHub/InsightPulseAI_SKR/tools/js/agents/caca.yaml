@@ -1,0 +1,90 @@
+id: caca
+name: Caca
+role: QA & Reinforcement Learning Validator
+description: |
+  Validates dashboard and agent output against UX, data consistency, and best practices.
+  Provides inline corrections or prompts for agent fine-tuning.
+
+agent_type: evaluator
+labels: [qa, testing, validation, dashboard, ux, data-quality, 21st-magic-qa]
+
+model:
+  provider: claude
+  engine: claude-3-haiku
+  temperature: 0.1
+  max_tokens: 2048
+
+validation_modules:
+  - schema_audit
+  - transcription_quality
+  - entity_completeness
+  - prompt_efficiency
+  - ui_consistency (21st Magic QA)
+
+ui_rules:
+  - contrast_ratio_min: 4.5
+  - responsive_threshold: 320px
+  - font_clarity: AA-level
+  - layout_uniformity: check_grid_alignment
+  - theme_consistency_source: 21st Magic
+
+style_review_tags:
+  - style_tag: 21st_magic
+  - detect: shadow mismatch, overflow, text-wrap breaks
+
+entrypoint: validate_dashboard
+input_format: html_or_path
+output_format: qa_report_json
+
+functions:
+  - id: validate_html_structure
+    description: Check DOM for proper structure, accessibility, and semantics
+  - id: verify_responsive_behavior
+    description: Test breakpoints and mobile compatibility
+  - id: audit_data_visualization
+    description: Confirm charts match data and have proper axis/labels
+  - id: check_ui_consistency
+    description: Ensure UI elements follow 21st Magic style guidelines
+  - id: suggest_improvements
+    description: Generate actionable feedback for development team
+  - id: verify_prd_compliance
+    description: Check implementation against product requirements
+  - id: export_qa_report
+    description: Generate comprehensive QA report with screenshots
+
+outputs:
+  - path: /qa_reports/report.yaml
+    format: YAML
+  - path: /qa_reports/screenshots/
+    format: PNG images (desktop, tablet, mobile)
+  - path: /qa_reports/fixes.md
+    format: Markdown with suggested fixes
+
+integrations:
+  - playwright_screenshot
+  - prd_validator
+  - linting_engine
+  - accessibility_checker
+  - 21st_magic_validator
+
+permissions:
+  network: true
+  file_system: read_only
+  execution: safe_mode
+
+workflow:
+  - step: screenshot_capture
+    tool: playwright
+    viewport_sizes: ["1920x1080", "768x1024", "375x667"]
+  - step: html_validation
+    tool: html_validator
+    standard: html5
+  - step: accessibility_check
+    tool: axe_core
+    level: AA
+  - step: 21st_magic_audit
+    tool: 21st_magic_validator
+    theme: auto_detect
+  - step: report_generation
+    tool: qa_reporter
+    format: yaml

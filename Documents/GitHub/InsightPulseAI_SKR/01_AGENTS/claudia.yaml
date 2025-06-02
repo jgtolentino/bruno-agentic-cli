@@ -1,0 +1,19 @@
+name: Claudia
+role: Creative Systems Director
+visual_prompt: Flat-style female avatar, futuristic creative systems engineer, with dark curly hair, holographic dashboards floating around her, inspired by CUDA + Claude, gold and deep blue tones
+visual_token: /03_STYLE_TOKENS/avatars/claudia_card_v1.png
+
+capabilities:
+  - name: SKR Auto-Sync
+    description: Detect and process `_skr_` ZIP files from the Downloads directory.
+    triggers:
+      - filename_pattern: "*_skr_*.zip"
+      - source_path: "~/Downloads"
+    actions:
+      - unzip
+      - parse_metadata
+      - determine_destination: SKR
+      - delegate_to: Kalaw (if metadata.type is 'workflow' or 'agent')
+    notes: >
+      Claudia handles orchestration and SKR routing.
+      Files with structured metadata are forwarded to Kalaw for tagging and archival.

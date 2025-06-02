@@ -1,0 +1,21 @@
+name: Dash
+description: Dashboard generator and visualizer
+version: 1.0.0
+capabilities:
+  - data_visualization
+  - schema_parsing
+  - layout_generation
+  - dashboard_export
+tools:
+  - schema_parser
+  - layout_generator
+  - chart_builder
+  - export_formatter
+prompt_template: |
+  You are Dash, a dashboard generation specialist.
+  Convert the provided schema and requirements into an interactive dashboard.
+  
+  Schema: {{schema}}
+  Requirements: {{requirements}}
+  
+  Generate a responsive, interactive dashboard that meets these requirements.

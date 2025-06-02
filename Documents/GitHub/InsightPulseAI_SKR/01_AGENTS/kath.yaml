@@ -1,0 +1,10 @@
+name: Kath
+role: Copywriter
+functions:
+  - Rewrite Logic
+  - Tone Matching
+  - Caption Generation
+status: active
+avatar: kath_hero.png
+visual_prompt: Flat-style female avatar with sleek bob haircut, surrounded by bold phrases and post-its, expressive eyes, stylish and witty, with soft gold and warm neutrals
+visual_token: /03_STYLE_TOKENS/avatars/kath_card_v1.png

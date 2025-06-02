@@ -1,0 +1,102 @@
+# Codex-Dash Integration Configuration
+# This file defines the integration between Codex guardrails and Dash dashboard builder
+
+id: codex_dash
+name: Codex Dash Integration
+version: 1.0.0
+description: |
+  Enables Codex to generate, validate, and deploy dashboards through Dash
+  while enforcing all guardrails policies. This integration allows for
+  automated dashboard workflows with quality checks and safety controls.
+
+required_agents:
+  - codex
+  - dash
+
+commands:
+  - id: generate
+    description: Generate a dashboard using Dash
+    script: ../scripts/codex_dash_connector.js
+    args:
+      - generate
+      - --source
+      - ${source}
+      - --requirements
+      - ${requirements}
+      - --output
+      - ${output}
+      - --theme
+      - ${theme}
+    permissions:
+      - file_read
+      - file_write
+      - execute
+  
+  - id: deploy
+    description: Deploy a generated dashboard
+    script: ../scripts/codex_dash_connector.js
+    args:
+      - deploy
+      - --path
+      - ${path}
+      - --target
+      - ${target}
+      - --environment
+      - ${environment}
+    permissions:
+      - file_read
+      - network
+      - execute
+  
+  - id: validate
+    description: Validate a dashboard against guardrails
+    script: ../scripts/codex_dash_connector.js
+    args:
+      - validate
+      - --path
+      - ${path}
+    permissions:
+      - file_read
+      - execute
+
+guardrails:
+  dashboard_schema:
+    path: ../schemas/dashboard.schema.json
+    validate_on_generation: true
+    validate_on_deployment: true
+  
+  validation_rules:
+    - rule: mobile_responsive
+      description: Dashboard must be responsive on mobile devices
+      pattern: '<meta[^>]*viewport'
+      required: true
+      message: "Dashboard must include viewport meta tag for mobile responsiveness"
+    
+    - rule: accessible_elements
+      description: Dashboard must include accessibility attributes
+      pattern: 'aria-|role=|alt='
+      required: true
+      message: "Dashboard must include ARIA attributes for accessibility"
+    
+    - rule: dark_mode_support
+      description: Dashboard should support dark mode
+      pattern: 'dark-mode|data-theme|color-scheme'
+      required: false
+      message: "Consider adding dark mode support to the dashboard"
+  
+  deployment_rules:
+    - environment: production
+      requires_approval: true
+      canary_first: true
+    
+    - environment: canary
+      percentage: 10
+      monitoring_duration: 24h
+    
+    - environment: dev
+      auto_deploy: true
+
+cli_aliases:
+  - name: codex-dash
+    path: ../scripts/codex_dash_connector.js
+    description: "Command-line interface for Codex-Dash integration"

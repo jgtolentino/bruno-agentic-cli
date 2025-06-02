@@ -1,0 +1,16 @@
+# Pulser Shell Configuration
+
+# Model settings
+default_model=mistral
+cache_models=true
+
+# Output settings
+suppress_warnings=true
+silent_mode=true
+debug_mode=false
+
+# Default mode (prompt, shell, ops)
+default_mode=prompt
+
+# Directory settings
+data_dir=~/.pulser

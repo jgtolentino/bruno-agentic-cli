@@ -1,0 +1,79 @@
+version: "2.0"
+description: >
+  ACI.dev-style multi-API agent orchestration for Pulser. Allows Claude to interpret
+  natural language prompts and execute chained actions using integrated APIs (e.g. Tavily, Gmail, Hacker News).
+
+trigger_agent: claudepulser
+entrypoint: process_user_prompt
+
+agents:
+  claudepulser:
+    type: orchestrator
+    tools:
+      - kalaw.semantic_indexer
+      - echo.signal_extractor
+      - task_router.mcp_chain
+    behavior: >
+      Parse high-level task intent, extract sub-actions (search, fetch, email, summarize),
+      delegate to appropriate agents, confirm execution path with Claudia, and route logs to SKR.
+
+  kalaw:
+    type: knowledge_indexer
+    tools:
+      - tavily.query
+    capabilities:
+      - context_enrichment
+      - source_discovery
+    notes: >
+      Use Tavily to retrieve and rank relevant links. Return 3–5 summaries.
+
+  echo:
+    type: signal_parser
+    tools:
+      - hackernews.fetch_top
+    capabilities:
+      - live_feed_parsing
+      - post-ranking
+    notes: >
+      Extract top N posts from Hacker News. Output must be structured in JSON + YAML dual format.
+
+  tala:
+    type: finance_and_automation
+    tools:
+      - gmail.api.send_email
+    routing: >
+      Compose and send email with authenticated token. Email content must be validated by Caca.
+
+  caca:
+    type: qa_and_rl
+    tools:
+      - validator.email_format
+      - checker.intent_safety
+    notes: >
+      Acts as safety check before emails are sent or API write actions are executed.
+
+flow:
+  - step: parse
+    agent: claudepulser
+    action: decompose user request into sub-tasks
+  - step: source
+    agent: kalaw
+    action: retrieve supporting information (Tavily)
+  - step: extract
+    agent: echo
+    action: fetch top content (e.g. Hacker News API)
+  - step: validate
+    agent: caca
+    action: audit outbound email for structure + safety
+  - step: dispatch
+    agent: tala
+    action: send email to external user via Gmail API
+  - step: archive
+    agent: claudepulser
+    action: log metadata + route to SKR via Claudia
+
+tags:
+  - ACI-style
+  - multi-api-orchestration
+  - agent-routing
+  - mcp-chain
