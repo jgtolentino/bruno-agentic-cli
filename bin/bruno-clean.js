@@ -50,7 +50,7 @@ Options:
     const configPath = path.join(__dirname, '..', 'config', 'brunorc.yaml');
     let config = {
       llm_provider: 'local',
-      model: 'deepseek-coder:6.7b',
+      model: 'deepseek-coder:6.7b-instruct-q4_K_M',
       ollama_url: 'http://127.0.0.1:11434',
       allow_cloud: false,
       offline_mode: true
@@ -201,8 +201,8 @@ async function handleInteractiveMode(sessionManager, config, args, services) {
     startTime: new Date().toISOString()
   });
   
-  // Start REPL without announcement
-  const { startRepl } = await import('../shell/repl-local.js');
+  // Start clean REPL
+  const { startRepl } = await import('../shell/repl-clean.js');
   await startRepl({ 
     ...args, 
     sessionManager, 

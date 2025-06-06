@@ -4,8 +4,25 @@ import chalk from 'chalk';
 export class OllamaClient {
   constructor(config) {
     this.baseURL = config.ollama_url || 'http://127.0.0.1:11434';
-    this.model = config.local_model || 'deepseek-coder:6.7b';
-    this.timeout = config.timeout || 60000; // Increased to 60 seconds for slower models
+    this.model = config.local_model || 'deepseek-coder:6.7b-instruct-q4_K_M';
+    this.timeout = config.timeout || 30000; // 30 seconds max
+    
+    // Local caching configuration for reducing repeated computations
+    this.cacheConfig = {
+      enabled: config.enableLocalCaching !== false, // Default to enabled
+      maxCacheSize: config.maxCacheSize || 100, // Max cached responses
+      cacheTTL: config.cacheTTL || 300000, // 5 minutes
+      systemPromptCaching: true,
+      contextCaching: true
+    };
+    
+    // In-memory cache for responses (for local models)
+    this.responseCache = new Map();
+    this.cacheMetrics = {
+      hits: 0,
+      misses: 0,
+      evictions: 0
+    };
   }
 
   async checkHealth() {
@@ -30,6 +47,19 @@ export class OllamaClient {
   }
 
   async generate(prompt, options = {}) {
+    // Check cache first
+    if (this.cacheConfig.enabled) {
+      const cacheKey = this.generateCacheKey(prompt, options);
+      const cached = this.getCachedResponse(cacheKey);
+      
+      if (cached) {
+        this.cacheMetrics.hits++;
+        console.log(chalk.green('💾 Cache hit - using cached response'));
+        return cached.response;
+      }
+      this.cacheMetrics.misses++;
+    }
+
     const response = await axios.post(`${this.baseURL}/api/generate`, {
       model: this.model,
       prompt: prompt,
@@ -43,7 +73,15 @@ export class OllamaClient {
       timeout: this.timeout
     });
 
-    return response.data.response;
+    const result = response.data.response;
+    
+    // Cache the response if enabled
+    if (this.cacheConfig.enabled && this.shouldCacheResponse(prompt, result, options)) {
+      const cacheKey = this.generateCacheKey(prompt, options);
+      this.setCachedResponse(cacheKey, result);
+    }
+
+    return result;
   }
 
   async generateStream(prompt, onChunk, options = {}) {
@@ -89,5 +127,118 @@ export class OllamaClient {
   // Alias for generateCompletion to match UniversalRouter usage
   async generateCompletion(prompt, options = {}) {
     return await this.generate(prompt, options);
+  }
+  
+  /**
+   * Generate a cache key for the prompt and options
+   */
+  generateCacheKey(prompt, options) {
+    const keyData = {
+      prompt: prompt.substring(0, 500), // Use first 500 chars for key
+      model: this.model,
+      temperature: options.temperature || 0.7,
+      systemContext: options.systemContext || null
+    };
+    
+    // Create a simple hash-like key
+    return JSON.stringify(keyData);
+  }
+  
+  /**
+   * Get cached response if available and not expired
+   */
+  getCachedResponse(cacheKey) {
+    const cached = this.responseCache.get(cacheKey);
+    
+    if (!cached) return null;
+    
+    // Check if expired
+    if (Date.now() - cached.timestamp > this.cacheConfig.cacheTTL) {
+      this.responseCache.delete(cacheKey);
+      return null;
+    }
+    
+    return cached;
+  }
+  
+  /**
+   * Cache a response
+   */
+  setCachedResponse(cacheKey, response) {
+    // Clean up cache if it's getting too large
+    if (this.responseCache.size >= this.cacheConfig.maxCacheSize) {
+      this.evictOldestCacheEntries();
+    }
+    
+    this.responseCache.set(cacheKey, {
+      response,
+      timestamp: Date.now()
+    });
+  }
+  
+  /**
+   * Determine if a response should be cached
+   */
+  shouldCacheResponse(prompt, response, options) {
+    // Don't cache if response is too short (likely an error)
+    if (response.length < 20) return false;
+    
+    // Cache system prompts and context-heavy queries
+    if (this.cacheConfig.systemPromptCaching && 
+        (options.systemContext || prompt.includes('Context:') || prompt.includes('Schema:'))) {
+      return true;
+    }
+    
+    // Cache substantial prompts that are likely to be reused
+    if (prompt.length > 200) return true;
+    
+    return false;
+  }
+  
+  /**
+   * Evict oldest cache entries to make room
+   */
+  evictOldestCacheEntries() {
+    const entries = Array.from(this.responseCache.entries());
+    entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+    
+    // Remove oldest 20% of entries
+    const toRemove = Math.floor(entries.length * 0.2);
+    for (let i = 0; i < toRemove; i++) {
+      this.responseCache.delete(entries[i][0]);
+      this.cacheMetrics.evictions++;
+    }
+  }
+  
+  /**
+   * Get cache statistics
+   */
+  getCacheStats() {
+    const totalRequests = this.cacheMetrics.hits + this.cacheMetrics.misses;
+    const hitRate = totalRequests > 0 ? (this.cacheMetrics.hits / totalRequests * 100).toFixed(1) : 0;
+    
+    return {
+      ...this.cacheMetrics,
+      hitRate: parseFloat(hitRate),
+      cacheSize: this.responseCache.size,
+      maxCacheSize: this.cacheConfig.maxCacheSize
+    };
+  }
+  
+  /**
+   * Clear the cache
+   */
+  clearCache() {
+    this.responseCache.clear();
+    this.cacheMetrics = { hits: 0, misses: 0, evictions: 0 };
+    console.log(chalk.yellow('🧹 Local cache cleared'));
+  }
+  
+  /**
+   * Configure caching
+   */
+  configureCaching(config) {
+    this.cacheConfig = { ...this.cacheConfig, ...config };
+    console.log(chalk.green('✓ Local caching configuration updated'));
   }
 }

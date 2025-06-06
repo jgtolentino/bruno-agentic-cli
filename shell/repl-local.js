@@ -68,7 +68,7 @@ export async function startRepl(args) {
       id: sessionId, 
       messageCount: sessionContext.recentMessages.length 
     } : null,
-    { model: config.model || 'deepseek-coder:6.7b' },
+    { model: config.model || 'deepseek-coder:6.7b-instruct-q4_K_M' },
     'ready'
   );
   

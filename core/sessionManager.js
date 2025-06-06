@@ -50,7 +50,7 @@ export class SessionManager {
       },
       metadata: {
         totalMessages: 0,
-        model: 'deepseek-coder:6.7b',
+        model: 'deepseek-coder:6.7b-instruct-q4_K_M',
         version: '3.0'
       }
     };

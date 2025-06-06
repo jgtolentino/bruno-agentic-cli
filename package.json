@@ -1,26 +1,30 @@
 {
   "name": "bruno",
-  "version": "1.0.0",
+  "private": true,
+  "version": "3.2.0",
   "description": "Bruno: Claude-style local AI CLI with clean prompt-to-response flow.",
   "type": "module",
   "bin": {
-    "bruno": "./bin/bruno-clean.js",
-    "bruno31": "./bin/bruno-v31.js",
-    "bruno-enhanced": "./bin/bruno-enhanced.js",
-    "bruno-debug": "./bin/bruno-debug.js"
+    "bruno": "./claude.js",
+    "bruno-clean": "./bin/bruno-clean.js"
   },
   "scripts": {
-    "start": "node bin/bruno.js",
-    "start:enhanced": "node bin/bruno-enhanced.js",
-    "start:debug": "node bin/bruno-debug.js",
-    "test": "npm run test:main && npm run test:enhanced",
-    "test:main": "node bin/bruno.js --version && node bin/bruno.js --help",
-    "test:enhanced": "node bin/bruno-enhanced.js --version && node bin/bruno-enhanced.js --help",
-    "test:debug": "node bin/bruno-debug.js --version",
-    "dev": "node bin/bruno.js",
+    "start": "node claude.js",
+    "start:clean": "node bin/bruno-clean.js",
+    "test": "vitest",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage",
+    "test:report": "vitest coverage --reporter=html",
+    "test:all": "npm run test:coverage && npm run test:report",
+    "dev": "concurrently \"vite\" \"npm run api\"",
+    "build": "vite build",
+    "preview": "vite preview",
     "link:global": "npm link",
-    "unlink:global": "npm unlink -g bruno-agentic-cli",
-    "test:claude-parity": "node tests/test-claude-parity.js"
+    "unlink:global": "npm unlink -g bruno",
+    "test:integration": "node tests/test-claude-parity.js",
+    "test:api": "concurrently \"node server.js\" \"mocha tests/api.test.js --timeout 10000\" --kill-others",
+    "api": "node server.js",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "keywords": [
     "cli",
@@ -35,6 +39,7 @@
   "author": "Your Name <your@email.com>",
   "license": "MIT",
   "dependencies": {
+    "@supabase/supabase-js": "^2.50.0",
     "ansi-regex": "^6.0.1",
     "asana": "^3.0.0",
     "axios": "^1.7.0",
@@ -43,7 +48,10 @@
     "chalk": "^5.4.1",
     "chokidar": "^3.5.3",
     "cli-progress": "^3.12.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "eventemitter3": "^5.0.0",
+    "express": "^4.18.3",
     "fs-extra": "^11.3.0",
     "fuzzy": "^0.1.3",
     "googleapis": "^126.0.0",
@@ -52,13 +60,14 @@
     "inquirer-autocomplete-prompt": "^3.0.0",
     "jimp": "^0.22.0",
     "js-yaml": "^4.1.0",
+    "lucide-react": "^0.344.0",
     "mime-types": "^2.1.35",
-    "node-fetch": "^3.3.0",
     "node-pty": "^1.0.0",
     "openai": "^4.20.0",
     "ora": "^8.2.0",
     "prismjs": "^1.29.0",
     "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "sharp": "^0.34.2",
     "strip-ansi": "^7.1.0",
     "terminal-kit": "^3.0.0",
@@ -66,9 +75,30 @@
     "ws": "^8.13.0"
   },
   "devDependencies": {
-    "eslint": "^8.57.0"
+    "@tailwindcss/postcss7-compat": "^2.2.17",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^14.2.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/react": "^18.2.64",
+    "@types/react-dom": "^18.2.21",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.18",
+    "chai": "^5.2.0",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.5",
+    "jsdom": "^24.0.0",
+    "mocha": "^11.5.0",
+    "node-fetch": "^2.7.0",
+    "postcss": "^8.4.35",
+    "sinon": "^20.0.0",
+    "tailwindcss": "^3.4.1",
+    "vite": "^5.1.6",
+    "vitest": "^1.3.1"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.0.0 <=22.x"
   }
 }

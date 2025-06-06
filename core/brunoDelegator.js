@@ -19,7 +19,7 @@ class BrunoDelegator {
             delegationQueueDir: config.delegationQueueDir || path.join(process.cwd(), '.bruno-workspace', 'delegation-queue'),
             mcpFileServer: config.mcpFileServer || 'http://localhost:8001',
             maxRetries: config.maxRetries || 3,
-            timeout: config.timeout || 60000,
+            timeout: config.timeout || 300000,
             verbose: config.verbose || false,
             ...config
         };

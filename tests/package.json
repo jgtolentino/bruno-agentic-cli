@@ -33,5 +33,6 @@
     "integration"
   ],
   "author": "Bruno Orchestration Team",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module"
 }
